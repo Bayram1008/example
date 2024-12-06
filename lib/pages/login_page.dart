@@ -53,7 +53,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               TextFormField(
                 focusNode: nameFocus,
-                //autofocus: true,
                 onFieldSubmitted: (_) {
                   changeField(context, nameFocus, passwordFocus);
                 },

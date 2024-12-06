@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:new_project/model/user_model.dart';
@@ -87,6 +86,20 @@ class _NewEmployeeState extends State<NewEmployee> {
     newBirthdayFocus.dispose();
     newHiredDFayFocus.dispose();
     newResignedDayFocus.dispose();
+  }
+
+  void clear(){
+    newFirstNameController.clear();
+    newLastNameController.clear();
+    newPositionController.clear();
+    newEmailController.clear();
+    newPhoneController.clear();
+    newBirthdayController.clear();
+    newHiredDayController.clear();
+    newResignedDayController.clear();
+    setState(() {
+      avatarFile = null;
+    });
   }
 
   
@@ -237,7 +250,10 @@ class _NewEmployeeState extends State<NewEmployee> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    clear();
+                    Navigator.pop(context);
+                  },
                   child: const Text(
                     'Cancel',
                     style: TextStyle(
@@ -261,11 +277,11 @@ class _NewEmployeeState extends State<NewEmployee> {
                     Employee newUser = Employee(
                       firstName: newFirstNameController.text,
                       lastName: newLastNameController.text,
-                      birthDate: DateTime.now(),
+                      birthDate: DateTime.parse(newBirthdayController.text),
                       phoneNumber: newPhoneController.text,
                       position: newPositionController.text,
                       email: newEmailController.text,
-                      hireDate: DateTime.now(),
+                      hireDate: DateTime.parse(newHiredDayController.text),
                     );
                     print('hello world, we are under the newUser');
                     try {

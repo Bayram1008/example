@@ -30,11 +30,6 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
   final TokenService savedDataInUpdateEmployee = TokenService();
   File? avatarFile;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   editedFirstNameController.text = widget.editEmployee.firstName;
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +57,6 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                   editedFirstNameController = TextEditingController(
                     text: widget.editEmployee.firstName,
                   ),
-              //initialValue: widget.editEmployee.firstName,
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16.0),
@@ -71,7 +65,6 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                   editedLastNameController = TextEditingController(
                     text: widget.editEmployee.lastName,
                   ),
-              //initialValue: widget.editEmployee.lastName,
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16.0),
@@ -80,7 +73,6 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                   editedPositionController = TextEditingController(
                     text: widget.editEmployee.position,
                   ),
-              //initialValue: widget.editEmployee.position,
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16.0),
@@ -89,7 +81,6 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                   editedEmailController = TextEditingController(
                     text: widget.editEmployee.email,
                   ),
-              // initialValue: widget.editEmployee.email,
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16.0),
@@ -98,7 +89,6 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                   editedPhoneNumberController = TextEditingController(
                     text: widget.editEmployee.phoneNumber,
                   ),
-              // initialValue: widget.editEmployee.phoneNumber,
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16.0),
@@ -109,9 +99,6 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                       'dd/MM/yyyy',
                     ).format(widget.editEmployee.birthDate),
                   ),
-              //initialValue: DateFormat(
-              //'dd/MM/yyyy',
-              // ).format(widget.editEmployee.birthDate),
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16.0),
@@ -122,9 +109,6 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                       'dd/MM/yyyy',
                     ).format(widget.editEmployee.hireDate),
                   ),
-              //initialValue: DateFormat(
-              // 'dd/MM/yyyy',
-              //).format(widget.editEmployee.hireDate),
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16.0),
@@ -135,12 +119,6 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                       'dd/MM/yyyy',
                     ).format(widget.editEmployee.resignDate ?? DateTime.now()),
                   ),
-              //initialValue:
-              // widget.editEmployee.resignDate != null
-              //  ? DateFormat(
-              //   'dd/MM/yyyy',
-              // ).format(widget.editEmployee.resignDate!)
-              //  : null,
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             const SizedBox(height: 16.0),

@@ -55,7 +55,7 @@ class Employee {
       'first_name': firstName,
       'last_name': lastName,
       'birth_date':  DateFormat('yyyy-MM-dd').format(birthDate),
-      'phone_number': phoneNumber,
+      'phone_number': '+993$phoneNumber',
       'position': position,
       'avatar' : avatar,
       'email': email,

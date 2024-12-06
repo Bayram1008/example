@@ -39,7 +39,6 @@ dependencies:
   jwt_decoder: ^2.0.1
   intl: ^0.19.0
   file_picker: ^8.1.4
-  flutter_native_splash: ^2.4.3
 
 dev_dependencies:
   flutter_test:

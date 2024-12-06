@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:new_project/model/user_model.dart';
+import 'package:new_project/pages/search_page.dart';
 
 class EmployeeInfo extends StatelessWidget {
   final Employee employeeInfo;
@@ -11,124 +12,96 @@ class EmployeeInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: const Text('Hint'),
-                  content: const Text('Do you really want to quit?'),
-                  actions: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(
-                              context,
-                            ).popUntil((route) => route.isFirst);
-                          },
-                          child: const Text(
-                            'OK',
-                            style: TextStyle(color: Colors.green),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-          icon: const Icon(Icons.arrow_back),
+        backgroundColor: Colors.blueGrey[300],
+        title: const Text(
+          'Employee Information',
+          style: TextStyle(color: Colors.white),
         ),
-        title: const Text('Employee Information'),
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Center(
-          child: ListView(
-            children: [
-              Container(
-                height: 250.0,
-                width: 250.0,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: NetworkImage(employeeInfo.avatar!.toString()),
-                  ),
-                ),
+      body: ListView(
+        padding: EdgeInsets.all(8.0),
+        children: [
+          Container(
+            height: 250.0,
+            width: 250.0,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                image: NetworkImage(employeeInfo.avatar!.toString()),
+                fit: BoxFit.cover,
               ),
-              const SizedBox(height: 20.0),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.person),
-                  title: Text(
-                    '${employeeInfo.firstName} ${employeeInfo.lastName}',
-                  ),
-                  subtitle: Text(employeeInfo.position),
-                ),
-              ),
-              const SizedBox(height: 20.0),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.mail),
-                  title: const Text('Email address'),
-                  subtitle: Text(employeeInfo.email!),
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.phone),
-                  title: const Text('Phone number'),
-                  subtitle: Text(employeeInfo.phoneNumber),
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.date_range),
-                  title: const Text('Birth day'),
-                  subtitle: Text(
-                    DateFormat('dd/MM/yyyy').format(employeeInfo.birthDate),
-                  ),
-                ),
-              ),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.date_range),
-                  title: const Text('Resign Date'),
-                  subtitle: Text(
-                    timeData == null
-                        ? 'There is no resignDate'
-                        : DateFormat('dd/MM/yyyy').format(timeData!),
-                  ),
-                ),
-              ),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.date_range),
-                  title: const Text('Hired date'),
-                  subtitle: Text(
-                    DateFormat('dd/MM/yyyy').format(employeeInfo.hireDate),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(height: 20.0),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.person),
+              title: Text('${employeeInfo.firstName} ${employeeInfo.lastName}'),
+              subtitle: Text(employeeInfo.position),
+            ),
+          ),
+          const SizedBox(height: 20.0),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.mail),
+              title: const Text('Email address'),
+              subtitle: Text(employeeInfo.email!),
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.phone),
+              title: const Text('Phone number'),
+              subtitle: Text(employeeInfo.phoneNumber),
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.date_range),
+              title: const Text('Birth day'),
+              subtitle: Text(
+                DateFormat('dd/MM/yyyy').format(employeeInfo.birthDate),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.date_range),
+              title: const Text('Resign Date'),
+              subtitle: Text(
+                timeData == null
+                    ? 'There is no resignDate'
+                    : DateFormat('dd/MM/yyyy').format(timeData!),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.date_range),
+              title: const Text('Hired date'),
+              subtitle: Text(
+                DateFormat('dd/MM/yyyy').format(employeeInfo.hireDate),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          ElevatedButton(
+            child: Text('Search bar'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => UserSearchPage()),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

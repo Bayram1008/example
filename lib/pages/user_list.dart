@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:new_project/model/user_model.dart';
+import 'package:new_project/pages/login_page.dart';
 import 'package:new_project/pages/new_user.dart';
 import 'package:new_project/pages/update_employee.dart';
 import 'package:new_project/pages/user_info.dart';
@@ -18,7 +20,15 @@ class _UserListState extends State<UserList> {
   final ApiService apiService = ApiService();
   final TokenService tokenService = TokenService();
 
+  TextEditingController newFirstNameController = TextEditingController();
+  TextEditingController newLastNameController = TextEditingController();
+  TextEditingController newPositionController = TextEditingController();
+  TextEditingController newPhoneController = TextEditingController();
+  TextEditingController newBirthdayMonthController = TextEditingController();
+
   List<Employee> filteredEmployeeList = [];
+
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -41,13 +51,97 @@ class _UserListState extends State<UserList> {
     });
   }
 
+  void clear() {
+    newFirstNameController.clear();
+    newLastNameController.clear();
+    newPositionController.clear();
+    newPhoneController.clear();
+    newBirthdayMonthController.clear();
+  }
+
+  void _searchUsers(Map<String, String?> query) async {
+    if (query.isEmpty) {
+      setState(() {
+        filteredEmployeeList = [];
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final users = await apiService.searchUsers(
+        query,
+        await tokenService.getAccessToken(),
+      );
+      setState(() {
+        filteredEmployeeList = users;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white38,
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: const Text('HINT'),
+                  content: const Text('Do you really want to log out?'),
+                  actions: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            tokenService.clearTokens();
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LoginPage(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(color: Colors.green),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+          icon: const Icon(Icons.logout, color: Colors.white),
+        ),
         centerTitle: true,
-        backgroundColor: Colors.blueGrey,
+        backgroundColor: Colors.blueGrey[400],
         title: const Text(
           'List of Employees',
           style: TextStyle(
@@ -57,8 +151,8 @@ class _UserListState extends State<UserList> {
           ),
         ),
         actions: [
-          // Search Field in the AppBar
           IconButton(
+            color: Colors.white,
             icon: Icon(Icons.search),
             onPressed: () {
               showSearch(
@@ -87,6 +181,7 @@ class _UserListState extends State<UserList> {
                       );
                     },
                     child: Card(
+                      color: Colors.blueGrey[100],
                       child: ListTile(
                         leading: Container(
                           height: 70.0,
@@ -99,7 +194,8 @@ class _UserListState extends State<UserList> {
                                       ? NetworkImage(
                                         '${filteredEmployeeList[index].avatar}',
                                       )
-                                      : AssetImage('assets/images.jpg') as ImageProvider,
+                                      : AssetImage('assets/images.jpg')
+                                          as ImageProvider,
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -125,7 +221,10 @@ class _UserListState extends State<UserList> {
                                     ),
                                   );
                                 },
-                                icon: Icon(Icons.edit, color: Colors.green[800]),
+                                icon: Icon(
+                                  Icons.edit,
+                                  color: Colors.green[800],
+                                ),
                               ),
                               const SizedBox(width: 8.0),
                               IconButton(
@@ -140,7 +239,8 @@ class _UserListState extends State<UserList> {
                                       );
                                   if (mounted) {
                                     setState(() {
-                                      widget.employeeList = refreshedEmployeeList;
+                                      widget.employeeList =
+                                          refreshedEmployeeList;
                                       filteredEmployeeList =
                                           refreshedEmployeeList;
                                     });
@@ -156,15 +256,222 @@ class _UserListState extends State<UserList> {
                   );
                 },
               ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (BuildContext context) => const NewEmployee(),
-            ),
-          );
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          FloatingActionButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (BuildContext context) => const NewEmployee(),
+                ),
+              );
+            },
+            child: const Icon(Icons.add),
+          ),
+          FloatingActionButton(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (BuildContext context) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      child: Center(
+                        child: ListView(
+                          children: [
+                            Text('Search Bar'),
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: newFirstNameController,
+                              onChanged: (_) {
+                                final Map<String, String?> searchBar = {
+                                  'first_name': newFirstNameController.text,
+                                  'last_name': newLastNameController.text,
+                                  'position': newPositionController.text,
+                                  'phone_number': newPhoneController.text,
+                                  'birth_date_month':
+                                      newBirthdayMonthController.text,
+                                };
+                                _searchUsers(searchBar);
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'First name',
+                                border: const OutlineInputBorder(),
+                                suffixIcon:
+                                    _isLoading
+                                        ? CircularProgressIndicator()
+                                        : IconButton(
+                                          icon: Icon(Icons.clear),
+                                          onPressed: () {
+                                            newFirstNameController.clear();
+                                            _searchUsers;
+                                          },
+                                        ),
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: newLastNameController,
+                              onChanged: (_) {
+                                final Map<String, String?> searchBar = {
+                                  'first_name': newFirstNameController.text,
+                                  'last_name': newLastNameController.text,
+                                  'position': newPositionController.text,
+                                  'phone_number': newPhoneController.text,
+                                  'birth_date_month':
+                                      newBirthdayMonthController.text,
+                                };
+                                _searchUsers(searchBar);
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'Last name',
+                                border: const OutlineInputBorder(),
+                                suffixIcon:
+                                    _isLoading
+                                        ? CircularProgressIndicator()
+                                        : IconButton(
+                                          icon: Icon(Icons.clear),
+                                          onPressed: () {
+                                            newFirstNameController.clear();
+                                            _searchUsers;
+                                          },
+                                        ),
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: newPositionController,
+                              onChanged: (_) {
+                                final Map<String, String?> searchBar = {
+                                  'first_name': newFirstNameController.text,
+                                  'last_name': newLastNameController.text,
+                                  'position': newPositionController.text,
+                                  'phone_number': newPhoneController.text,
+                                  'birth_date_month':
+                                      newBirthdayMonthController.text,
+                                };
+                                _searchUsers(searchBar);
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'Position',
+                                border: const OutlineInputBorder(),
+                                suffixIcon:
+                                    _isLoading
+                                        ? CircularProgressIndicator()
+                                        : IconButton(
+                                          icon: Icon(Icons.clear),
+                                          onPressed: () {
+                                            newFirstNameController.clear();
+                                            _searchUsers;
+                                          },
+                                        ),
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: newPhoneController,
+                              onChanged: (_) {
+                                final Map<String, String?> searchBar = {
+                                  'first_name': newFirstNameController.text,
+                                  'last_name': newLastNameController.text,
+                                  'position': newPositionController.text,
+                                  'phone_number': newPhoneController.text,
+                                  'birth_date_month':
+                                      newBirthdayMonthController.text,
+                                };
+                                _searchUsers(searchBar);
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'Phone Number',
+                                border: const OutlineInputBorder(),
+                                suffixIcon:
+                                    _isLoading
+                                        ? CircularProgressIndicator()
+                                        : IconButton(
+                                          icon: Icon(Icons.clear),
+                                          onPressed: () {
+                                            newFirstNameController.clear();
+                                            _searchUsers;
+                                          },
+                                        ),
+                              ),
+                              keyboardType: TextInputType.emailAddress,
+                            ),
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: newBirthdayMonthController,
+                              onChanged: (_) {
+                                final Map<String, String?> searchBar = {
+                                  'first_name': newFirstNameController.text,
+                                  'last_name': newLastNameController.text,
+                                  'position': newPositionController.text,
+                                  'phone_number': newPhoneController.text,
+                                  'birth_date_month': DateFormat.MMMM().format(newBirthdayMonthController.text as DateTime),
+                                };
+                                _searchUsers(searchBar);
+                              },
+                              decoration: InputDecoration(
+                                labelText: 'Month of the Birthday',
+                                border: const OutlineInputBorder(),
+                                suffixIcon:
+                                    _isLoading
+                                        ? CircularProgressIndicator()
+                                        : IconButton(
+                                          icon: Icon(Icons.clear),
+                                          onPressed: () {
+                                            newFirstNameController.clear();
+                                            _searchUsers;
+                                          },
+                                        ),
+                              ),
+                              keyboardType: TextInputType.phone,
+                            ),
+                            const SizedBox(height: 8.0),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    clear();
+                                    Navigator.pop(context);
+                                    setState(() {
+                                      initState();
+                                    });
+                                  },
+                                  child: const Text(
+                                    'Cancel',
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 24.0,
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text(
+                                    'Search',
+                                    style: TextStyle(
+                                      color: Colors.green,
+                                      fontSize: 24.0,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+            child: const Icon(Icons.search),
+          ),
+        ],
       ),
     );
   }
@@ -220,7 +527,6 @@ class UserSearchDelegate extends SearchDelegate<String> {
           title: Text('${results[index].firstName} ${results[index].lastName}'),
           subtitle: Text(results[index].position),
           onTap: () {
-            // Navigate to employee details page
           },
         );
       },

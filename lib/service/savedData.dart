@@ -45,6 +45,7 @@ class TokenService {
     }
     return null;
   }
+
 }
 
 enum SecureStorageKeys {access_token, refresh_token}
