@@ -92,3 +92,14 @@ class EmployeeList {
     );
   }
 }
+
+class Document{
+  int? id;
+  final String name;
+  final String type;
+  final String filePath;
+  String? status;
+  final DateTime expiredDate;
+
+  Document(this.name, this.type, this.filePath, this.expiredDate);
+}

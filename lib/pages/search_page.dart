@@ -29,7 +29,7 @@ class _UserSearchPageState extends State<UserSearchPage> {
     });
 
     try {
-      final users = await apiService.searchUsers(
+      final users = await apiService.searchEmployeesInPostData(
         query,
         await tokenService.getAccessToken(),
       );
