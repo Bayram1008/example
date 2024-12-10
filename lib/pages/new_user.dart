@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:new_project/model/user_model.dart';
 import 'package:new_project/pages/user_list.dart';
@@ -88,7 +89,7 @@ class _NewEmployeeState extends State<NewEmployee> {
     newResignedDayFocus.dispose();
   }
 
-  void clear(){
+  void clear() {
     newFirstNameController.clear();
     newLastNameController.clear();
     newPositionController.clear();
@@ -101,8 +102,6 @@ class _NewEmployeeState extends State<NewEmployee> {
       avatarFile = null;
     });
   }
-
-  
 
   File? avatarFile;
   @override
@@ -139,6 +138,7 @@ class _NewEmployeeState extends State<NewEmployee> {
                 changeField(context, newFirstNameFocus, newLastNameFocus);
               },
               controller: newFirstNameController,
+              style: TextStyle(fontSize: 18.0),
               decoration: const InputDecoration(
                 labelText: 'First name',
                 border: OutlineInputBorder(),
@@ -151,6 +151,7 @@ class _NewEmployeeState extends State<NewEmployee> {
                 changeField(context, newLastNameFocus, newPositionFocus);
               },
               controller: newLastNameController,
+              style: TextStyle(fontSize: 18.0),
               decoration: const InputDecoration(
                 labelText: 'Last name',
                 border: OutlineInputBorder(),
@@ -163,6 +164,7 @@ class _NewEmployeeState extends State<NewEmployee> {
                 changeField(context, newPositionFocus, newEmailFocus);
               },
               controller: newPositionController,
+              style: TextStyle(fontSize: 18.0),
               decoration: const InputDecoration(
                 labelText: 'Position',
                 border: OutlineInputBorder(),
@@ -175,6 +177,7 @@ class _NewEmployeeState extends State<NewEmployee> {
                 changeField(context, newEmailFocus, newPhoneFocus);
               },
               controller: newEmailController,
+              style: TextStyle(fontSize: 18.0),
               decoration: const InputDecoration(
                 labelText: 'Email Address',
                 border: OutlineInputBorder(),
@@ -188,14 +191,26 @@ class _NewEmployeeState extends State<NewEmployee> {
                 changeField(context, newPhoneFocus, newBirthdayFocus);
               },
               controller: newPhoneController,
+              style: TextStyle(fontSize: 18.0),
               decoration: const InputDecoration(
                 labelText: 'Phone Number',
                 border: OutlineInputBorder(),
+                hintText: '-- ------',
+                prefixIcon: Center(child: Text('+993', style: TextStyle(fontSize: 18.0),)),
+                prefixIconConstraints: BoxConstraints(maxWidth: 60, minWidth: 50),
+                floatingLabelAlignment: FloatingLabelAlignment.start,
               ),
               keyboardType: TextInputType.phone,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                FilteringTextInputFormatter.deny(' '),
+                LengthLimitingTextInputFormatter(8),
+                CardNumberInputFormatter(),
+              ],
             ),
             const SizedBox(height: 16),
             TextFormField(
+              style: TextStyle(fontSize: 18.0),
               focusNode: newBirthdayFocus,
               onFieldSubmitted: (_) {
                 changeField(context, newBirthdayFocus, newHiredDFayFocus);
@@ -314,7 +329,7 @@ class _NewEmployeeState extends State<NewEmployee> {
                       );
 
                       final newEmployeeList = await serviceInNewEmployee
-                          .getData(await savedData.getAccessToken());
+                          .getData(await savedData.getAccessToken(), 12, 0);
 
                       if (!mounted) return;
                       Navigator.pushReplacement(
@@ -346,6 +361,35 @@ class _NewEmployeeState extends State<NewEmployee> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class CardNumberInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text;
+
+    if (newValue.selection.baseOffset == 0) {
+      return newValue;
+    }
+
+    final buffer = StringBuffer();
+    for (var i = 0; i < text.length; i++) {
+      buffer.write(text[i]);
+      final nonZeroIndex = i + 1;
+      if (nonZeroIndex == 2 && nonZeroIndex != text.length) {
+        buffer.write(' '); // Add double spaces.
+      }
+    }
+
+    final string = buffer.toString();
+    return newValue.copyWith(
+      text: string,
+      selection: TextSelection.collapsed(offset: string.length),
     );
   }
 }

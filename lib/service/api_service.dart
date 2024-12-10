@@ -40,14 +40,14 @@ class ApiService {
     }
   }
 
-  Future<List<Employee>> getData(String? accessToken) async {
+  Future<List<Employee>> getData(String? accessToken, int limit, int offset) async {
     if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
       print(accessToken);
       try {
         dio.options.headers['Authorization'] = 'Bearer $accessToken';
 
         print('We are in getData');
-        final response = await dio.get('employees/');
+        final response = await dio.get('employees/', queryParameters: {'limit':limit, 'offset':offset});
 
         if (response.statusCode == 200) {
           print(response.statusCode);
@@ -74,7 +74,7 @@ class ApiService {
       if (responce.statusCode == 200) {
         String? newAccessToken = responce.data['access'];
         tokenService.updateAccessToken(newAccessToken!);
-        getData(newAccessToken);
+        getData(newAccessToken, limit, offset);
       }
     }
     return [];
@@ -244,6 +244,46 @@ class ApiService {
         String? newAccessToken = responce.data['access'];
         tokenService.updateAccessToken(newAccessToken!);
         searchEmployeesInGetData(newAccessToken, query);
+      }
+    }
+    return [];
+  }
+
+  Future<List<Document>> getDocuments(int? id,String? accessToken) async {
+    if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
+      print(accessToken);
+      try {
+        dio.options.headers['Authorization'] = 'Bearer $accessToken';
+
+        print('We are in getData');
+        final response = await dio.get('employees/$id/');
+
+        if (response.statusCode == 200) {
+          print(response.statusCode);
+          final information = response.data;
+          print(information);
+          final list = Documents.fromJson(information);
+          print('Bu list: ${list}');
+          final netije = list.document.map((e) => Document.fromJson(e)).toList();
+          print('Bu netije: ${netije}');
+          return netije;
+        } else {
+          throw Exception('Something went wrong in getData');
+        }
+      } catch (e) {
+        print('Error in getData: $e');
+        throw Exception('Failed to fetch data');
+      }
+    } else if (tokenService.isTokenExpired(accessToken!)) {
+      final String? refreshToken = await tokenService.getRefreshToken();
+      final responce = await dio.post(
+        'http://192.168.4.72/api/token/refresh/',
+        data: {'refresh': refreshToken},
+      );
+      if (responce.statusCode == 200) {
+        String? newAccessToken = responce.data['access'];
+        tokenService.updateAccessToken(newAccessToken!);
+        getDocuments(id, newAccessToken);
       }
     }
     return [];

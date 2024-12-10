@@ -89,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
               TextButton(
                 onPressed: () async {
                   final token = await service.getToken(usernameController.text, passwordController.text);
-                  final employeeList = await service.getData(token);
+                  final employeeList = await service.getData(token, 12, 0);
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
                       builder: (context) => UserList(

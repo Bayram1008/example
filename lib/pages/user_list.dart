@@ -18,6 +18,9 @@ class UserList extends StatefulWidget {
 class _UserListState extends State<UserList> {
   final ApiService apiService = ApiService();
   final TokenService tokenService = TokenService();
+  final ScrollController scrollController = ScrollController();
+  int offset = 11;
+  final int limit = 12;
 
   TextEditingController newFirstNameController = TextEditingController();
   TextEditingController newLastNameController = TextEditingController();
@@ -32,14 +35,54 @@ class _UserListState extends State<UserList> {
   List<Employee> filteredEmployeeList = [];
 
   bool _isLoading = false;
+  bool _hasMore = true;
 
   @override
   void initState() {
     super.initState();
     filteredEmployeeList = widget.employeeList;
+
+    scrollController.addListener(() async {
+      if (scrollController.position.pixels ==
+              scrollController.position.maxScrollExtent &&
+          !_isLoading &&
+          _hasMore) {
+        getEmployees();
+      }
+    });
   }
 
-  void _filterEmployees(String query) {
+  Future<void> getEmployees() async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      
+      final newEmployees = await apiService.getData(
+        await tokenService.getAccessToken(),
+        limit,
+        offset,
+      );
+      setState(() {
+        offset += limit;
+        filteredEmployeeList.addAll(newEmployees);
+        if (newEmployees.length < limit) {
+          _hasMore = false;
+        }
+      });
+    } catch (e) {
+      print('Error fetching items: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void filterEmployees(String query) {
     final filteredList =
         widget.employeeList.where((employee) {
           return employee.firstName.toLowerCase().contains(
@@ -122,6 +165,12 @@ class _UserListState extends State<UserList> {
         _isLoading = false;
       });
     }
+  }
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -313,17 +362,34 @@ class _UserListState extends State<UserList> {
       ),
       body:
           filteredEmployeeList.isEmpty
-              ? Center(child: CircularProgressIndicator())
+              ? Center(
+                child: Text(
+                  'Olar yaly isgar yok',
+                  style: TextStyle(
+                    color: Colors.deepOrangeAccent,
+                    fontSize: 24.0,
+                  ),
+                ),
+              )
               : ListView.builder(
-                itemCount: filteredEmployeeList.length,
+                controller: scrollController,
+                itemCount: filteredEmployeeList.length + (_hasMore ? 1 : 0),
                 itemBuilder: (context, index) {
+                  if (index == filteredEmployeeList.length) {
+                    return Center(child: CircularProgressIndicator());
+                  }
                   return GestureDetector(
-                    onTap: () {
+                    onTap: () async {
+                      final employeeDoc = await apiService.getDocuments(
+                        filteredEmployeeList[index].id,
+                        await tokenService.getAccessToken(),
+                      );
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder:
                               (context) => EmployeeInfo(
                                 employeeInfo: filteredEmployeeList[index],
+                                employeeDocuments: employeeDoc,
                               ),
                         ),
                       );
@@ -384,6 +450,8 @@ class _UserListState extends State<UserList> {
                                   final refreshedEmployeeList = await apiService
                                       .getData(
                                         await tokenService.getAccessToken(),
+                                        12,
+                                        0,
                                       );
                                   if (mounted) {
                                     setState(() {
@@ -407,7 +475,7 @@ class _UserListState extends State<UserList> {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          FloatingActionButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -417,7 +485,7 @@ class _UserListState extends State<UserList> {
             },
             child: const Icon(Icons.add),
           ),
-          FloatingActionButton(
+          ElevatedButton(
             onPressed: () {
               showModalBottomSheet(
                 context: context,
@@ -557,14 +625,14 @@ class _UserListState extends State<UserList> {
                                 ElevatedButton(
                                   onPressed: () {
                                     final Map<String, String?> searchBar = {
-                                  'first_name': newFirstNameController.text,
-                                  'last_name': newLastNameController.text,
-                                  'position': newPositionController.text,
-                                  'phone_number': newPhoneController.text,
-                                  'birth_date_month':
-                                      newBirthdayMonthController.text,
-                                };
-                                _searchEmployeesInPostData(searchBar);
+                                      'first_name': newFirstNameController.text,
+                                      'last_name': newLastNameController.text,
+                                      'position': newPositionController.text,
+                                      'phone_number': newPhoneController.text,
+                                      'birth_date_month':
+                                          newBirthdayMonthController.text,
+                                    };
+                                    _searchEmployeesInPostData(searchBar);
                                     Navigator.pop(context);
                                   },
                                   child: const Text(

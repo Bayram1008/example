@@ -15,6 +15,8 @@ class Employee {
   DateTime? updatedAt;
   int? userId;
 
+  List<Document?>? documents;
+
   Employee({
     this.id,
     required this.firstName,
@@ -29,6 +31,7 @@ class Employee {
     this.createdAt,
     this.updatedAt,
     this.userId,
+    this.documents,
   });
 
   factory Employee.fromJson(Map<String, dynamic> json) {
@@ -42,32 +45,40 @@ class Employee {
       avatar: json['avatar'],
       email: json['email'],
       hireDate: DateTime.parse(json['hire_date']),
-      resignDate: json['resign_date'] != null ? DateTime.parse(json['resign_date']): null,
-      createdAt: json['resign_date'] != null ? DateTime.parse(json['resign_date']): null,
-      updatedAt: json['resign_date'] != null ? DateTime.parse(json['resign_date']): null,
-      userId: json['user_id'],
+      resignDate:
+          json['resign_date'] != null
+              ? DateTime.parse(json['resign_date'])
+              : null,
+      createdAt:
+          json['resign_date'] != null
+              ? DateTime.parse(json['resign_date'])
+              : null,
+      updatedAt:
+          json['resign_date'] != null
+              ? DateTime.parse(json['resign_date'])
+              : null,
+      userId: json['user_id'], 
+      documents: json['documents'],
     );
   }
 
-   Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'first_name': firstName,
       'last_name': lastName,
-      'birth_date':  DateFormat('yyyy-MM-dd').format(birthDate),
+      'birth_date': DateFormat('yyyy-MM-dd').format(birthDate),
       'phone_number': '+993$phoneNumber',
       'position': position,
-      'avatar' : avatar,
+      'avatar': avatar,
       'email': email,
       'hire_date': DateFormat('yyyy-MM-dd').format(hireDate),
-      'resign_date':  DateFormat('yyyy-MM-dd').format(resignDate!),
+      'resign_date': DateFormat('yyyy-MM-dd').format(resignDate!),
       'created_at': createdAt,
       'updated_at': updatedAt,
       'user_id': userId,
     };
   }
-
-
 }
 
 class EmployeeList {
@@ -93,7 +104,17 @@ class EmployeeList {
   }
 }
 
-class Document{
+class Documents {
+  final List document;
+
+  Documents({required this.document});
+
+  factory Documents.fromJson(Map<String, dynamic> json) {
+    return Documents(document: json['documents'] as List);
+  }
+}
+
+class Document {
   int? id;
   final String name;
   final String type;
@@ -101,5 +122,19 @@ class Document{
   String? status;
   final DateTime expiredDate;
 
-  Document(this.name, this.type, this.filePath, this.expiredDate);
+  Document({
+    required this.name,
+    required this.type,
+    required this.filePath,
+    required this.expiredDate,
+  });
+
+  factory Document.fromJson(Map<String, dynamic> json) {
+    return Document(
+      name: json['name'],
+      type: json['type'],
+      filePath: json['file_path'],
+      expiredDate: DateTime.parse(json['expiry_date']),
+    );
+  }
 }

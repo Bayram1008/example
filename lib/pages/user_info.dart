@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:new_project/model/user_model.dart';
+import 'package:new_project/service/api_service.dart';
+import 'package:new_project/service/savedData.dart';
+import 'package:open_filex/open_filex.dart';
 
 class EmployeeInfo extends StatelessWidget {
   final Employee employeeInfo;
-  EmployeeInfo({super.key, required this.employeeInfo});
+  List<Document?>? employeeDocuments;
+  EmployeeInfo({super.key, required this.employeeInfo, this.employeeDocuments});
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +39,7 @@ class EmployeeInfo extends StatelessWidget {
         body: TabBarView(
           children: [
             UserInformation(employeeInformation: employeeInfo),
-            UserDocumation(userId: employeeInfo.id,),
+            UserDocumation(employeeDocs: employeeDocuments),
           ],
         ),
       ),
@@ -129,14 +133,68 @@ class UserInformation extends StatelessWidget {
 }
 
 class UserDocumation extends StatelessWidget {
-  final int? userId;
-  const UserDocumation({super.key, required this.userId});
+  final List<Document?>? employeeDocs;
+  UserDocumation({super.key, required this.employeeDocs});
+
+  final ApiService apiService = ApiService();
+  final TokenService tokenService = TokenService();
+
+  void showOpenWithBottomSheet(BuildContext context, String? filePath) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.file_open),
+                title: Text('Open with default app'),
+                onTap: () async {
+                  final result = await OpenFilex.open(filePath!);
+                  Navigator.pop(context);
+                  if (result.type != ResultType.done) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to open file')),
+                    );
+                  }
+                },
+              ),
+              Divider(),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView(children: [
-
-      ],
-    );
+    return employeeDocs!.isEmpty
+        ? Center(
+          child: Text(
+            'There is no any Documents',
+            style: TextStyle(
+              color: Colors.deepOrangeAccent,
+              fontSize: 24.0,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        )
+        : ListView.builder(
+          padding: EdgeInsets.all(10.0),
+          itemCount: employeeDocs!.length,
+          itemBuilder: (context, index) {
+            return Card(
+              child: ListTile(
+                title: Text('${employeeDocs![index]?.name}'),
+                subtitle: Text('${employeeDocs![index]?.type}'),
+                onTap: (){
+                  showOpenWithBottomSheet(context, employeeDocs![index]?.filePath);
+                },
+              ),
+            );
+          },
+        );
   }
 }

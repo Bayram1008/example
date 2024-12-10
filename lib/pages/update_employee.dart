@@ -159,7 +159,7 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                   );
 
                   final newEmployeeList = await serviceInUpdateEmployee.getData(
-                    await savedDataInUpdateEmployee.getAccessToken(),
+                    await savedDataInUpdateEmployee.getAccessToken(), 12, 0
                   );
 
                   if (!mounted) return;
