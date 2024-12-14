@@ -118,23 +118,38 @@ class Document {
   int? id;
   final String name;
   final String type;
-  final String filePath;
+  String? filePath;
   String? status;
-  final DateTime expiredDate;
+  DateTime? expiredDate;
+  final int? employee;
 
-  Document({
+  Document({required this.employee, 
     required this.name,
     required this.type,
-    required this.filePath,
-    required this.expiredDate,
+    this.filePath,
+    this.expiredDate,
+    this.id,
   });
 
   factory Document.fromJson(Map<String, dynamic> json) {
     return Document(
+      employee: json['employee'],
       name: json['name'],
       type: json['type'],
       filePath: json['file_path'],
-      expiredDate: DateTime.parse(json['expiry_date']),
+      expiredDate: json['expiry_date'] != null
+              ? DateTime.parse(json['expiry_date'])
+              : null,
     );
+  }
+
+  Map<String, dynamic> toJson(){
+    return {
+      'name': name,
+      'type': type,
+      'expiry_date': DateFormat('yyyy-MM-dd').format(expiredDate!),
+      'file_path':filePath,
+      'employee': employee,
+    };
   }
 }

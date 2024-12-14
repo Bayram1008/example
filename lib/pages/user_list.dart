@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:new_project/model/user_model.dart';
+import 'package:new_project/pages/employee_doc.dart';
 import 'package:new_project/pages/login_page.dart';
 import 'package:new_project/pages/new_user.dart';
 import 'package:new_project/pages/update_employee.dart';
@@ -19,7 +20,7 @@ class _UserListState extends State<UserList> {
   final ApiService apiService = ApiService();
   final TokenService tokenService = TokenService();
   final ScrollController scrollController = ScrollController();
-  int offset = 11;
+  int offset = 12;
   final int limit = 12;
 
   TextEditingController newFirstNameController = TextEditingController();
@@ -60,7 +61,6 @@ class _UserListState extends State<UserList> {
     });
 
     try {
-      
       final newEmployees = await apiService.getData(
         await tokenService.getAccessToken(),
         limit,
@@ -172,6 +172,8 @@ class _UserListState extends State<UserList> {
     scrollController.dispose();
     super.dispose();
   }
+
+  int? selectedIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -379,96 +381,258 @@ class _UserListState extends State<UserList> {
                     return Center(child: CircularProgressIndicator());
                   }
                   return GestureDetector(
-                    onTap: () async {
-                      final employeeDoc = await apiService.getDocuments(
-                        filteredEmployeeList[index].id,
-                        await tokenService.getAccessToken(),
-                      );
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder:
-                              (context) => EmployeeInfo(
-                                employeeInfo: filteredEmployeeList[index],
-                                employeeDocuments: employeeDoc,
-                              ),
-                        ),
-                      );
+                    onTap: () {
+                      setState(() {
+                        selectedIndex = selectedIndex == index ? null : index;
+                      });
+                      //async {
+                      // final employeeDoc = await apiService.getDocuments(
+                      //   filteredEmployeeList[index].id,
+                      //   await tokenService.getAccessToken(),
+                      // );
+                      // Navigator.of(context).push(
+                      //   MaterialPageRoute(
+                      //     builder:
+                      //         (context) => EmployeeInfo(
+                      //           employeeInfo: filteredEmployeeList[index],
+                      //           employeeDocuments: employeeDoc,
+                      //         ),
+                      //   ),
+                      // );
                     },
-                    child: Card(
-                      color: Colors.blueGrey[100],
-                      child: ListTile(
-                        leading: Container(
-                          height: 70.0,
-                          width: 70.0,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: DecorationImage(
-                              image:
-                                  filteredEmployeeList[index].avatar != null
-                                      ? NetworkImage(
-                                        '${filteredEmployeeList[index].avatar}',
-                                      )
-                                      : AssetImage('assets/images.jpg')
-                                          as ImageProvider,
-                              fit: BoxFit.cover,
-                            ),
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      padding: EdgeInsets.all(10),
+                      margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.blueGrey[100],
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withValues(),
+                            blurRadius: 5,
+                            offset: Offset(0, 3),
                           ),
-                        ),
-                        title: Text(
-                          '${filteredEmployeeList[index].firstName} ${filteredEmployeeList[index].lastName}',
-                        ),
-                        subtitle: Text(filteredEmployeeList[index].position),
-                        trailing: SizedBox(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder:
-                                          (context) => UpdateEmployee(
-                                            editEmployee:
-                                                filteredEmployeeList[index],
-                                          ),
-                                    ),
-                                  );
-                                },
-                                icon: Icon(
-                                  Icons.edit,
-                                  color: Colors.green[800],
+                        ],
+                      ),
+                      height: selectedIndex == index ? 175 : 115,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListTile(
+                            leading: Container(
+                              height: 75.0,
+                              width: 75.0,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                image: DecorationImage(
+                                  image:
+                                      filteredEmployeeList[index].avatar != null
+                                          ? NetworkImage(
+                                            '${filteredEmployeeList[index].avatar}',
+                                          )
+                                          : AssetImage('assets/images.jpg')
+                                              as ImageProvider,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
-                              const SizedBox(width: 8.0),
-                              IconButton(
-                                onPressed: () async {
-                                  await apiService.deleteData(
-                                    filteredEmployeeList[index].id.toString(),
-                                    await tokenService.getAccessToken(),
-                                  );
-                                  final refreshedEmployeeList = await apiService
-                                      .getData(
-                                        await tokenService.getAccessToken(),
-                                        12,
-                                        0,
+                            ),
+                            title: Text(
+                              '${filteredEmployeeList[index].firstName} ${filteredEmployeeList[index].lastName}',
+                            ),
+                            subtitle: Text(
+                              filteredEmployeeList[index].position,
+                            ),
+                            trailing: SizedBox(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => UpdateEmployee(
+                                                editEmployee:
+                                                    filteredEmployeeList[index],
+                                              ),
+                                        ),
                                       );
-                                  if (mounted) {
-                                    setState(() {
-                                      widget.employeeList =
-                                          refreshedEmployeeList;
-                                      filteredEmployeeList =
-                                          refreshedEmployeeList;
-                                    });
-                                  }
-                                },
-                                icon: Icon(Icons.delete, color: Colors.red),
+                                    },
+                                    icon: Icon(
+                                      Icons.edit,
+                                      color: Colors.green[800],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8.0),
+                                  IconButton(
+                                    onPressed: () async {
+                                      await apiService.deleteData(
+                                        filteredEmployeeList[index].id
+                                            .toString(),
+                                        await tokenService.getAccessToken(),
+                                      );
+                                      final refreshedEmployeeList =
+                                          await apiService.getData(
+                                            await tokenService.getAccessToken(),
+                                            12,
+                                            0,
+                                          );
+                                      if (mounted) {
+                                        setState(() {
+                                          widget.employeeList =
+                                              refreshedEmployeeList;
+                                          filteredEmployeeList =
+                                              refreshedEmployeeList;
+                                        });
+                                      }
+                                    },
+                                    icon: Icon(Icons.delete, color: Colors.red),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                          if (selectedIndex == index)
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  ElevatedButton(
+                                    style: ButtonStyle(
+                                      backgroundColor:
+                                          WidgetStatePropertyAll<Color>(
+                                            Colors.green,
+                                          ),
+                                    ),
+                                    onPressed: () async {
+                                      final employeeDoc = await apiService.getDocuments(filteredEmployeeList[index].id, await tokenService.getAccessToken());
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => EmployeeDoc(
+                                                id:
+                                                    filteredEmployeeList[index]
+                                                        .id, employeeDocuments: employeeDoc,
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      'Documents',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    style: ButtonStyle(
+                                      backgroundColor:
+                                          WidgetStatePropertyAll<Color>(
+                                            Colors.green,
+                                          ),
+                                    ),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => EmployeeInfo(
+                                                employeeInformation:
+                                                    filteredEmployeeList[index],
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                      'Information',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
                     ),
+                    // child: Card(
+                    //   color: Colors.blueGrey[100],
+                    //   child: ListTile(
+                    //     leading: Container(
+                    //       height: 70.0,
+                    //       width: 70.0,
+                    //       decoration: BoxDecoration(
+                    //         shape: BoxShape.circle,
+                    //         image: DecorationImage(
+                    //           image:
+                    //               filteredEmployeeList[index].avatar != null
+                    //                   ? NetworkImage(
+                    //                     '${filteredEmployeeList[index].avatar}',
+                    //                   )
+                    //                   : AssetImage('assets/images.jpg')
+                    //                       as ImageProvider,
+                    //           fit: BoxFit.cover,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //     title: Text(
+                    //       '${filteredEmployeeList[index].firstName} ${filteredEmployeeList[index].lastName}',
+                    //     ),
+                    //     subtitle: Text(filteredEmployeeList[index].position),
+                    //     trailing: SizedBox(
+                    //       child: Row(
+                    //         mainAxisSize: MainAxisSize.min,
+                    //         children: [
+                    //           IconButton(
+                    //             onPressed: () {
+                    //               Navigator.pushReplacement(
+                    //                 context,
+                    //                 MaterialPageRoute(
+                    //                   builder:
+                    //                       (context) => UpdateEmployee(
+                    //                         editEmployee:
+                    //                             filteredEmployeeList[index],
+                    //                       ),
+                    //                 ),
+                    //               );
+                    //             },
+                    //             icon: Icon(
+                    //               Icons.edit,
+                    //               color: Colors.green[800],
+                    //             ),
+                    //           ),
+                    //           const SizedBox(width: 8.0),
+                    //           IconButton(
+                    //             onPressed: () async {
+                    //               await apiService.deleteData(
+                    //                 filteredEmployeeList[index].id.toString(),
+                    //                 await tokenService.getAccessToken(),
+                    //               );
+                    //               final refreshedEmployeeList = await apiService
+                    //                   .getData(
+                    //                     await tokenService.getAccessToken(),
+                    //                     12,
+                    //                     0,
+                    //                   );
+                    //               if (mounted) {
+                    //                 setState(() {
+                    //                   widget.employeeList =
+                    //                       refreshedEmployeeList;
+                    //                   filteredEmployeeList =
+                    //                       refreshedEmployeeList;
+                    //                 });
+                    //               }
+                    //             },
+                    //             icon: Icon(Icons.delete, color: Colors.red),
+                    //           ),
+                    //         ],
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
                   );
                 },
               ),

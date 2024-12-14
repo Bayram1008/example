@@ -91,7 +91,7 @@ class _UserSearchPageState extends State<UserSearchPage> {
                               MaterialPageRoute(
                                 builder:
                                     (context) =>
-                                        EmployeeInfo(employeeInfo: user),
+                                        EmployeeInfo(employeeInformation: user),
                               ),
                             );
                           },

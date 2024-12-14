@@ -288,4 +288,69 @@ class ApiService {
     }
     return [];
   }
+
+    Future<void> deleteDocument(int? id, String? accessToken) async {
+    if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
+      try {
+        dio.options.headers['Authorization'] = 'Bearer $accessToken';
+
+        final response = await dio.delete('documents/$id/');
+
+        if (response.statusCode == 200 || response.statusCode == 204) {
+          print('Data with ID $id deleted successfully');
+        } else {
+          print('Failed to delete data: ${response.data}');
+        }
+      } catch (e) {
+        print('Error in deleteData: $e');
+        throw Exception('Failed to delete data');
+      }
+    } else if (accessToken != null) {
+      final String? refreshToken = await tokenService.getRefreshToken();
+      final responce = await dio.post(
+        'http://192.168.4.72/api/token/refresh/',
+        data: {'refresh': refreshToken},
+      );
+      if (responce.statusCode == 200) {
+        String newAccessToken = responce.data['access'];
+        tokenService.updateAccessToken(newAccessToken);
+        deleteDocument(id, newAccessToken);
+      }
+    }
+    return;
+  }
+
+  Future<void> postDocumentToEmployee(String? accessToken, FormData query) async{
+      if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
+      try {
+        dio.options.headers['Authorization'] = 'Bearer $accessToken';
+        print('We are in the postData under the dio.options.headers');
+        final response = await dio.post(
+          'documents/',
+          data: query, 
+        );
+        print('We just post the user');
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          print('Document added successfully');
+        } else {
+          print('Failed to add document: ${response.data}');
+        }
+      } catch (e) {
+        print('Error in postDocumentToEmployee: $e');
+        throw Exception('Failed to post data');
+      }
+    } else if (accessToken != null) {
+      final String? refreshToken = await tokenService.getRefreshToken();
+      final responce = await dio.post(
+        'http://192.168.4.72/api/token/refresh/',
+        data: {'refresh': refreshToken},
+      );
+      if (responce.statusCode == 200) {
+        String newAccessToken = responce.data['access'];
+        tokenService.updateAccessToken(newAccessToken);
+        postDocumentToEmployee(newAccessToken, query);
+      }
+    }
+  }
 }
