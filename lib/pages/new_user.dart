@@ -296,7 +296,7 @@ class _NewEmployeeState extends State<NewEmployee> {
                       phoneNumber: newPhoneController.text,
                       position: newPositionController.text,
                       email: newEmailController.text,
-                      hireDate: DateTime.parse(newHiredDayController.text),
+                      hireDate: DateTime.parse(newHiredDayController.text), documents: [],
                     );
                     print('hello world, we are under the newUser');
                     try {
@@ -329,7 +329,7 @@ class _NewEmployeeState extends State<NewEmployee> {
                       );
 
                       final newEmployeeList = await serviceInNewEmployee
-                          .getData(await savedData.getAccessToken(), 12, 0);
+                          .getData(await savedData.getAccessToken(), 0, 12);
 
                       if (!mounted) return;
                       Navigator.pushReplacement(

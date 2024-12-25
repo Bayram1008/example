@@ -132,7 +132,7 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                   position: editedPositionController.text,
                   email: editedEmailController.text,
                   hireDate: DateTime.now(),
-                  resignDate: DateTime.now(),
+                  resignDate: DateTime.now(), documents: [],
                 );
                 try {
                   FormData newData = FormData.fromMap({
@@ -159,7 +159,7 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                   );
 
                   final newEmployeeList = await serviceInUpdateEmployee.getData(
-                    await savedDataInUpdateEmployee.getAccessToken(), 12, 0
+                    await savedDataInUpdateEmployee.getAccessToken(), 0, 12
                   );
 
                   if (!mounted) return;

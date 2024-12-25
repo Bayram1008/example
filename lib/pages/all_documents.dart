@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:new_project/model/user_model.dart';
-import 'package:new_project/pages/new_document.dart';
+import 'package:new_project/pages/doc_info.dart';
+import 'package:new_project/pages/edit_document.dart';
 import 'package:new_project/service/api_service.dart';
-import 'package:new_project/service/savedData.dart';
 import 'package:open_file/open_file.dart';
 
-class EmployeeDoc extends StatefulWidget {
-  List<Document>? employeeDocuments;
-  final int? id;
-  EmployeeDoc({super.key, required this.employeeDocuments, required this.id});
+class AllDocuments extends StatefulWidget {
+  List<Document>? documents;
+  AllDocuments({super.key, required this.documents});
 
   @override
-  State<EmployeeDoc> createState() => _EmployeeDocState();
+  State<AllDocuments> createState() => _AllDocumentsState();
 }
 
-class _EmployeeDocState extends State<EmployeeDoc> {
-  final ApiService apiService = ApiService();
-  final TokenService tokenService = TokenService();
+class _AllDocumentsState extends State<AllDocuments> {
+  ApiService apiService = ApiService();
 
   void showOpenWithBottomSheet(BuildContext context, String? filePath) {
     showModalBottomSheet(
@@ -46,49 +44,33 @@ class _EmployeeDocState extends State<EmployeeDoc> {
       },
     );
   }
+    Future<String> getEmployeeName(int index) async {
+    final employeeName = await apiService.getEmployeeById(await tokenService.getAccessToken(), widget.documents![index].employee);
+    return employeeName;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () {
-            Navigator.popUntil(context, (route) => route.isFirst);
-          },
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-        ),
-        backgroundColor: Colors.blueGrey[300],
-        title: Text(
-          'Documents of Employee',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: Text('All Documents'),
         centerTitle: true,
       ),
-      body: widget.employeeDocuments!.isEmpty
+      body: widget.documents!.isEmpty
           ? Center(
-              child: Text(
-                'There is no any documents',
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text('There is no any Documents'),
             )
           : ListView.builder(
-              itemCount: widget.employeeDocuments?.length,
+              itemCount: widget.documents!.length,
               itemBuilder: (context, index) {
                 return Card(
                   child: ListTile(
                     leading: Icon(Icons.note, size: 24.0),
-                    title: Text(widget.employeeDocuments![index].name),
-                    subtitle: Text(widget.employeeDocuments![index].type),
-                    onTap: () {
-                      showOpenWithBottomSheet(
-                        context,
-                        widget.employeeDocuments![index].filePath,
-                      );
+                    title: Text(widget.documents![index].name),
+                    subtitle: Text(widget.documents![index].type),
+                    onTap: () async{
+                      final employeeName = await getEmployeeName(index);
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=> DocInfo(documentInfo: widget.documents![index], employeeName: employeeName,),),);
                     },
                     trailing: SizedBox(
                       child: Row(
@@ -99,24 +81,45 @@ class _EmployeeDocState extends State<EmployeeDoc> {
                             onPressed: () async {
                               await apiService.downloadDocument(
                                   await tokenService.getAccessToken(),
-                                  widget.employeeDocuments![index].name,
-                                  widget.employeeDocuments![index].filePath, context);
+                                  widget.documents![index].name,
+                                  widget.documents![index].filePath, context);
                             },
-                            icon: Icon(Icons.download, size: 24.0, color: Colors.blueGrey,),
+                            icon: Icon(
+                              Icons.download,
+                              size: 24.0,
+                              color: Colors.blueGrey,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditDocument(
+                                    editDocument: widget.documents![index],
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: Icon(
+                              Icons.edit,
+                              size: 24.0,
+                              color: Colors.green,
+                            ),
                           ),
                           IconButton(
                             onPressed: () async {
                               await apiService.deleteDocument(
-                                widget.employeeDocuments![index].id,
+                                widget.documents![index].id,
                                 await tokenService.getAccessToken(),
                               );
                               final newDocuments =
                                   await apiService.getEmployeeDocuments(
-                                widget.id,
+                                widget.documents![index].id,
                                 await tokenService.getAccessToken(),
                               );
                               setState(() {
-                                widget.employeeDocuments = newDocuments;
+                                widget.documents = newDocuments;
                               });
                             },
                             icon: Icon(
@@ -132,19 +135,6 @@ class _EmployeeDocState extends State<EmployeeDoc> {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => NewDocument(
-                id: widget.id,
-              ),
-            ),
-          );
-        },
-        child: Icon(Icons.add),
-      ),
     );
   }
 }

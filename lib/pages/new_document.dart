@@ -165,7 +165,7 @@ class _NewDocumentState extends State<NewDocument> {
                       employee: widget.id,
                       name: documentName.text,
                       type: documentType.text,
-                      expiredDate: DateTime.parse(documentExpiredType.text),
+                      expiredDate: DateTime.parse(documentExpiredType.text), 
                     );
                     FormData query = FormData.fromMap({
                       'employee':newDocument.employee,
@@ -176,11 +176,11 @@ class _NewDocumentState extends State<NewDocument> {
                           await MultipartFile.fromFile(avatarFile!.path),
                         ],
                     });
-                    await apiService.postDocumentToEmployee(await tokenService.getAccessToken(), query);
+                    await apiService.postDocument(await tokenService.getAccessToken(), query);
 
-                    final employeeDoc = await apiService.getDocuments(widget.id, await tokenService.getAccessToken());
+                    final employeeDoc = await apiService.getEmployeeDocuments(widget.id, await tokenService.getAccessToken());
 
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=> EmployeeDoc(id: widget.id, employeeDocuments: employeeDoc,),),);
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> EmployeeDoc(id: widget.id, employeeDocuments: employeeDoc,),),);
 
                   },
                   child: Text(

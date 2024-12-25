@@ -15,7 +15,7 @@ class Employee {
   DateTime? updatedAt;
   int? userId;
 
-  List<Document?>? documents;
+  List<dynamic> documents;
 
   Employee({
     this.id,
@@ -31,7 +31,7 @@ class Employee {
     this.createdAt,
     this.updatedAt,
     this.userId,
-    this.documents,
+    required this.documents,
   });
 
   factory Employee.fromJson(Map<String, dynamic> json) {
@@ -58,7 +58,7 @@ class Employee {
               ? DateTime.parse(json['resign_date'])
               : null,
       userId: json['user_id'], 
-      documents: json['documents'],
+      documents: json['documents'] ?? [],
     );
   }
 
@@ -82,16 +82,18 @@ class Employee {
 }
 
 class EmployeeList {
-  final int count;
+  final int? count;
   final String? next;
   final String? previous;
-  final List results;
+  final List? results;
+  List? documents;
 
   EmployeeList({
     required this.count,
     this.next,
     this.previous,
     required this.results,
+    this.documents,
   });
 
   factory EmployeeList.fromJson(Map<String, dynamic> json) {
@@ -99,18 +101,19 @@ class EmployeeList {
       count: json['count'],
       next: json['next'],
       previous: json['previous'],
-      results: (json['results'] as List),
+      results: (json['results']),
+      documents:(json['documents']),
     );
   }
 }
 
 class Documents {
-  final List document;
+  final List? results;
 
-  Documents({required this.document});
+  Documents({required this.results});
 
   factory Documents.fromJson(Map<String, dynamic> json) {
-    return Documents(document: json['documents'] as List);
+    return Documents(results:json['results']==null ? [] : json['results'] as List);
   }
 }
 
@@ -133,6 +136,7 @@ class Document {
 
   factory Document.fromJson(Map<String, dynamic> json) {
     return Document(
+      id: json['id'],
       employee: json['employee'],
       name: json['name'],
       type: json['type'],
@@ -150,6 +154,29 @@ class Document {
       'expiry_date': DateFormat('yyyy-MM-dd').format(expiredDate!),
       'file_path':filePath,
       'employee': employee,
+    };
+  }
+}
+
+class UserProf{
+  int? id;
+  String? username;
+  final String password;
+  UserProf({this.id, this.username, required this.password});
+
+  factory UserProf.fromJson(Map<String, dynamic> json){
+    return UserProf(
+      id: json['id'],
+      username: json['username'] ?? '',
+      password: json['password'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson(){
+    return{
+      'id': id,
+      'username': username,
+      'password':password,
     };
   }
 }
