@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:new_project/model/user_model.dart';
 import 'package:new_project/pages/new_document.dart';
+import 'package:new_project/pages/translation.dart';
 import 'package:new_project/service/api_service.dart';
 import 'package:new_project/service/savedData.dart';
 import 'package:open_file/open_file.dart';
 
 class EmployeeDoc extends StatefulWidget {
+  final int selectedLanguageIndex;
   List<Document>? employeeDocuments;
   final int? id;
-  EmployeeDoc({super.key, required this.employeeDocuments, required this.id});
+  EmployeeDoc({super.key, required this.employeeDocuments, required this.id, required this.selectedLanguageIndex});
 
   @override
   State<EmployeeDoc> createState() => _EmployeeDocState();
@@ -17,6 +19,7 @@ class EmployeeDoc extends StatefulWidget {
 class _EmployeeDocState extends State<EmployeeDoc> {
   final ApiService apiService = ApiService();
   final TokenService tokenService = TokenService();
+  final Translation translation = Translation();
 
   void showOpenWithBottomSheet(BuildContext context, String? filePath) {
     showModalBottomSheet(
@@ -60,7 +63,7 @@ class _EmployeeDocState extends State<EmployeeDoc> {
         ),
         backgroundColor: Colors.blueGrey[300],
         title: Text(
-          'Documents of Employee',
+          translation.documentsOfEmployee[widget.selectedLanguageIndex],
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
@@ -68,7 +71,7 @@ class _EmployeeDocState extends State<EmployeeDoc> {
       body: widget.employeeDocuments!.isEmpty
           ? Center(
               child: Text(
-                'There is no any documents',
+                translation.thereIsNoAnyDocument[widget.selectedLanguageIndex],
                 style: TextStyle(
                   color: Colors.redAccent,
                   fontSize: 24.0,
@@ -138,7 +141,7 @@ class _EmployeeDocState extends State<EmployeeDoc> {
             context,
             MaterialPageRoute(
               builder: (context) => NewDocument(
-                id: widget.id,
+                id: widget.id, selectedLanguageIndex: widget.selectedLanguageIndex,
               ),
             ),
           );

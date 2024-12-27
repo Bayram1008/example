@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future<void> _checkAccessToken() async {
     String? accessToken = await tokenService.getAccessToken();
 
-    if (accessToken != null && accessToken.isNotEmpty) {
+    if (accessToken != null) {
       final employees = await apiService.getData(accessToken, 0, 12);
       Navigator.pushReplacement(
         context,

@@ -2,18 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:new_project/model/user_model.dart';
 import 'package:new_project/pages/doc_info.dart';
 import 'package:new_project/pages/edit_document.dart';
+import 'package:new_project/pages/translation.dart';
 import 'package:new_project/service/api_service.dart';
 import 'package:open_file/open_file.dart';
 
 class AllDocuments extends StatefulWidget {
+  final int selectedLanguageIndex;
   List<Document>? documents;
-  AllDocuments({super.key, required this.documents});
+  AllDocuments(
+      {super.key,
+      required this.documents,
+      required this.selectedLanguageIndex});
 
   @override
   State<AllDocuments> createState() => _AllDocumentsState();
 }
 
 class _AllDocumentsState extends State<AllDocuments> {
+  Translation translation = Translation();
   ApiService apiService = ApiService();
 
   void showOpenWithBottomSheet(BuildContext context, String? filePath) {
@@ -44,8 +50,10 @@ class _AllDocumentsState extends State<AllDocuments> {
       },
     );
   }
-    Future<String> getEmployeeName(int index) async {
-    final employeeName = await apiService.getEmployeeById(await tokenService.getAccessToken(), widget.documents![index].employee);
+
+  Future<String> getEmployeeName(int index) async {
+    final employeeName = await apiService.getEmployeeById(
+        await tokenService.getAccessToken(), widget.documents![index].employee);
     return employeeName;
   }
 
@@ -53,12 +61,13 @@ class _AllDocumentsState extends State<AllDocuments> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('All Documents'),
+        title: Text(translation.allDocuments[widget.selectedLanguageIndex]),
         centerTitle: true,
       ),
       body: widget.documents!.isEmpty
           ? Center(
-              child: Text('There is no any Documents'),
+              child: Text(translation
+                  .thereIsNoAnyDocument[widget.selectedLanguageIndex]),
             )
           : ListView.builder(
               itemCount: widget.documents!.length,
@@ -68,9 +77,18 @@ class _AllDocumentsState extends State<AllDocuments> {
                     leading: Icon(Icons.note, size: 24.0),
                     title: Text(widget.documents![index].name),
                     subtitle: Text(widget.documents![index].type),
-                    onTap: () async{
+                    onTap: () async {
                       final employeeName = await getEmployeeName(index);
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=> DocInfo(documentInfo: widget.documents![index], employeeName: employeeName,),),);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DocInfo(
+                            documentInfo: widget.documents![index],
+                            employeeName: employeeName,
+                            selectedLanguageIndex: widget.selectedLanguageIndex,
+                          ),
+                        ),
+                      );
                     },
                     trailing: SizedBox(
                       child: Row(
@@ -82,7 +100,8 @@ class _AllDocumentsState extends State<AllDocuments> {
                               await apiService.downloadDocument(
                                   await tokenService.getAccessToken(),
                                   widget.documents![index].name,
-                                  widget.documents![index].filePath, context);
+                                  widget.documents![index].filePath,
+                                  context);
                             },
                             icon: Icon(
                               Icons.download,
@@ -97,6 +116,8 @@ class _AllDocumentsState extends State<AllDocuments> {
                                 MaterialPageRoute(
                                   builder: (context) => EditDocument(
                                     editDocument: widget.documents![index],
+                                    selectedLanguageIndex:
+                                        widget.selectedLanguageIndex,
                                   ),
                                 ),
                               );

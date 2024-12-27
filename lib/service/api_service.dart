@@ -12,7 +12,7 @@ class ApiService {
   final Dio dio = Dio();
 
   ApiService() {
-    dio.options.baseUrl = 'http://192.168.4.72/api/';
+    dio.options.baseUrl = 'http://192.168.4.72:81/api/';
     dio.options.headers = {'Content-Type': 'application/json'};
     dio.options.connectTimeout = const Duration(seconds: 10);
     dio.options.receiveTimeout = const Duration(seconds: 10);
@@ -81,7 +81,7 @@ class ApiService {
     } else if (tokenService.isTokenExpired(accessToken!)) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -116,7 +116,7 @@ class ApiService {
     } else if (accessToken != null) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -147,7 +147,7 @@ class ApiService {
     } else if (accessToken != null) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -178,7 +178,7 @@ class ApiService {
     } else if (accessToken != null) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -213,7 +213,7 @@ class ApiService {
     } else if (accessToken != null) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -252,7 +252,7 @@ class ApiService {
     } else if (accessToken != null) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -294,7 +294,7 @@ class ApiService {
     } else if (tokenService.isTokenExpired(accessToken!)) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -325,7 +325,7 @@ class ApiService {
     } else if (accessToken != null) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -361,7 +361,7 @@ class ApiService {
     } else if (accessToken != null) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -407,7 +407,7 @@ class ApiService {
     } else if (accessToken != null) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -446,7 +446,7 @@ class ApiService {
     } else if (tokenService.isTokenExpired(accessToken!)) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -482,7 +482,7 @@ class ApiService {
     } else if (accessToken != null) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -520,7 +520,7 @@ class ApiService {
     } else if (tokenService.isTokenExpired(accessToken!)) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -557,7 +557,7 @@ class ApiService {
     } else if (tokenService.isTokenExpired(accessToken!)) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {
@@ -592,7 +592,7 @@ class ApiService {
     } else if (accessToken != null) {
       final String? refreshToken = await tokenService.getRefreshToken();
       final responce = await dio.post(
-        'http://192.168.4.72/api/token/refresh/',
+        'http://192.168.4.72:81/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
       if (responce.statusCode == 200) {

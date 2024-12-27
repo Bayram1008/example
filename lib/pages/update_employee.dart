@@ -4,13 +4,15 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:new_project/model/user_model.dart';
+import 'package:new_project/pages/translation.dart';
 import 'package:new_project/pages/user_list.dart';
 import 'package:new_project/service/api_service.dart';
 import 'package:new_project/service/savedData.dart';
 
 class UpdateEmployee extends StatefulWidget {
+  final int selectedLanguageIndex;
   final Employee editEmployee;
-  const UpdateEmployee({super.key, required this.editEmployee});
+  const UpdateEmployee({super.key, required this.editEmployee, required this.selectedLanguageIndex});
 
   @override
   State<UpdateEmployee> createState() => _UpdateEmployeeState();
@@ -28,13 +30,14 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
 
   final ApiService serviceInUpdateEmployee = ApiService();
   final TokenService savedDataInUpdateEmployee = TokenService();
+  final Translation translation =Translation();
   File? avatarFile;
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Edit the Employee'), centerTitle: true),
+      appBar: AppBar(title: Text(translation.updateEmployee[widget.selectedLanguageIndex]), centerTitle: true),
       body: Form(
         child: ListView(
           children: [
@@ -47,7 +50,7 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                 });
               },
               child: Text(
-                'Change the image for avatar',
+                translation.chooseImage[widget.selectedLanguageIndex],
                 style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
               ),
             ),
@@ -178,9 +181,9 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                 }
               },
               child: Text(
-                'Update Employee',
+                translation.editButton[widget.selectedLanguageIndex],
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.greenAccent,
                   fontWeight: FontWeight.w800,
                 ),
               ),

@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:new_project/model/user_model.dart';
+import 'package:new_project/pages/translation.dart';
 import 'package:new_project/service/api_service.dart';
 import 'package:new_project/service/savedData.dart';
 
 class UserProfile extends StatefulWidget {
+  final int selectedLanguageIndex;
   UserProf? userProf;
-  UserProfile({super.key, required this.userProf});
+  UserProfile({super.key, required this.userProf, required this.selectedLanguageIndex});
 
   @override
   State<UserProfile> createState() => _UserProfileState();
 }
 
 class _UserProfileState extends State<UserProfile> {
+  final Translation translation =Translation();
   TextEditingController newPasswordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController newUsernameController = TextEditingController();
@@ -49,7 +52,7 @@ class _UserProfileState extends State<UserProfile> {
           duration: Duration(seconds: 1),
           backgroundColor: Colors.red,
           content: Text(
-            'Password and Confirm Password are not same',
+            translation.passwordAndConfirm[widget.selectedLanguageIndex],
             style: TextStyle(color: Colors.white, fontSize: 24.0),
           ),
         ),
@@ -64,7 +67,7 @@ class _UserProfileState extends State<UserProfile> {
       appBar: AppBar(
         backgroundColor: Colors.blueGrey[700],
         title: Text(
-          'User Information',
+          translation.userInformation[widget.selectedLanguageIndex],
           style: TextStyle(color: Colors.white, fontSize: 24.0),
         ),
         centerTitle: true,
@@ -116,7 +119,7 @@ class _UserProfileState extends State<UserProfile> {
                         TextFormField(
                           controller: newUsernameController,
                           decoration: InputDecoration(
-                            labelText: 'Username',
+                            labelText: translation.username[widget.selectedLanguageIndex],
                             border: const OutlineInputBorder(),
                           ),
                         ),
@@ -125,7 +128,7 @@ class _UserProfileState extends State<UserProfile> {
                           controller: newPasswordController,
                           obscureText: hidePassword,
                           decoration: InputDecoration(
-                            labelText: 'Enter Password',
+                            labelText: translation.newPassword[widget.selectedLanguageIndex],
                             border: const OutlineInputBorder(),
                             suffixIcon: IconButton(
                               onPressed: () {
@@ -142,7 +145,7 @@ class _UserProfileState extends State<UserProfile> {
                           controller: confirmPasswordController,
                           obscureText: hideConfirmPassword,
                           decoration: InputDecoration(
-                            labelText: 'Confirm password',
+                            labelText: translation.confirmPassword[widget.selectedLanguageIndex],
                             border: const OutlineInputBorder(),
                             suffixIcon: IconButton(
                               onPressed: () {
@@ -164,7 +167,7 @@ class _UserProfileState extends State<UserProfile> {
                                 Navigator.pop(context);
                               },
                               child: Text(
-                                'Cancel',
+                                translation.cancelButton[widget.selectedLanguageIndex],
                                 style: TextStyle(
                                     color: Colors.red, fontSize: 20.0),
                               ),
@@ -177,7 +180,7 @@ class _UserProfileState extends State<UserProfile> {
                                     editUserProfile(await tokenService.getAccessToken(), newUserInfo.username, newUserInfo.password, widget.userProf!.id);
                               },
                               child: Text(
-                                'Edit',
+                                translation.editButton[widget.selectedLanguageIndex],
                                 style: TextStyle(
                                     color: Colors.green, fontSize: 20.0),
                               ),

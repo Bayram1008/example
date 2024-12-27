@@ -5,18 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:new_project/model/user_model.dart';
+import 'package:new_project/pages/translation.dart';
 import 'package:new_project/pages/user_list.dart';
 import 'package:new_project/service/api_service.dart';
 import 'package:new_project/service/savedData.dart';
 
 class NewEmployee extends StatefulWidget {
-  const NewEmployee({super.key});
+  final int selectedLanguageIndex;
+  const NewEmployee({super.key, required this.selectedLanguageIndex});
 
   @override
   State<NewEmployee> createState() => _NewEmployeeState();
 }
 
 class _NewEmployeeState extends State<NewEmployee> {
+  final Translation translation = Translation();
   final serviceInNewEmployee = ApiService();
   final savedData = TokenService();
 
@@ -108,8 +111,8 @@ class _NewEmployeeState extends State<NewEmployee> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Information of new Employee',
+        title: Text(
+          translation.informationOfNewEmployee[widget.selectedLanguageIndex],
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -126,7 +129,7 @@ class _NewEmployeeState extends State<NewEmployee> {
                 });
               },
               child: Text(
-                'Choose the image for avatar',
+                translation.chooseImage[widget.selectedLanguageIndex],
                 style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
               ),
             ),
@@ -139,8 +142,8 @@ class _NewEmployeeState extends State<NewEmployee> {
               },
               controller: newFirstNameController,
               style: TextStyle(fontSize: 18.0),
-              decoration: const InputDecoration(
-                labelText: 'First name',
+              decoration: InputDecoration(
+                labelText: translation.firstName[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
             ),
@@ -152,8 +155,8 @@ class _NewEmployeeState extends State<NewEmployee> {
               },
               controller: newLastNameController,
               style: TextStyle(fontSize: 18.0),
-              decoration: const InputDecoration(
-                labelText: 'Last name',
+              decoration: InputDecoration(
+                labelText: translation.lastName[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
             ),
@@ -165,8 +168,8 @@ class _NewEmployeeState extends State<NewEmployee> {
               },
               controller: newPositionController,
               style: TextStyle(fontSize: 18.0),
-              decoration: const InputDecoration(
-                labelText: 'Position',
+              decoration: InputDecoration(
+                labelText: translation.position[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
             ),
@@ -178,8 +181,8 @@ class _NewEmployeeState extends State<NewEmployee> {
               },
               controller: newEmailController,
               style: TextStyle(fontSize: 18.0),
-              decoration: const InputDecoration(
-                labelText: 'Email Address',
+              decoration: InputDecoration(
+                labelText: translation.emailAddress[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.emailAddress,
@@ -192,8 +195,8 @@ class _NewEmployeeState extends State<NewEmployee> {
               },
               controller: newPhoneController,
               style: TextStyle(fontSize: 18.0),
-              decoration: const InputDecoration(
-                labelText: 'Phone Number',
+              decoration: InputDecoration(
+                labelText: translation.phoneNumber[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
                 hintText: '-- ------',
                 prefixIcon: Center(child: Text('+993', style: TextStyle(fontSize: 18.0),)),
@@ -218,8 +221,8 @@ class _NewEmployeeState extends State<NewEmployee> {
               controller: newBirthdayController,
               readOnly: true,
               onTap: () => selectDate(context, newBirthdayController),
-              decoration: const InputDecoration(
-                labelText: 'Birthday',
+              decoration: InputDecoration(
+                labelText: translation.birthDay[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
             ),
@@ -239,8 +242,8 @@ class _NewEmployeeState extends State<NewEmployee> {
                     controller: newHiredDayController,
                     readOnly: true,
                     onTap: () => selectDate(context, newHiredDayController),
-                    decoration: const InputDecoration(
-                      labelText: 'Hired Day',
+                    decoration: InputDecoration(
+                      labelText: translation.hiredDate[widget.selectedLanguageIndex],
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -252,8 +255,8 @@ class _NewEmployeeState extends State<NewEmployee> {
                     controller: newResignedDayController,
                     readOnly: true,
                     onTap: () => selectDate(context, newResignedDayController),
-                    decoration: const InputDecoration(
-                      labelText: 'Resigned Day',
+                    decoration: InputDecoration(
+                      labelText: translation.resignedDate[widget.selectedLanguageIndex],
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -269,8 +272,8 @@ class _NewEmployeeState extends State<NewEmployee> {
                     clear();
                     Navigator.pop(context);
                   },
-                  child: const Text(
-                    'Cancel',
+                  child: Text(
+                    translation.cancelButton[widget.selectedLanguageIndex],
                     style: TextStyle(
                       color: Colors.red,
                       fontWeight: FontWeight.bold,
@@ -347,8 +350,8 @@ class _NewEmployeeState extends State<NewEmployee> {
                       );
                     }
                   },
-                  child: const Text(
-                    'Add',
+                  child: Text(
+                    translation.addButton[widget.selectedLanguageIndex],
                     style: TextStyle(
                       color: Colors.green,
                       fontWeight: FontWeight.bold,

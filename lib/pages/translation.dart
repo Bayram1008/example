@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class Translation {
+class Translation extends ChangeNotifier {
   List<String> addButton = ['Add', 'Gos'];
   List<String> cancelButton = ['Cancel', 'Yatyr'];
   List<String> editButton = ['Edit', 'Uytget'];
@@ -51,5 +51,13 @@ class Translation {
   List<String> allDocuments = ['All Documents', 'Dokumentlerin sanawy'];
   List<String> editTheDocument = ['Edit the Document', 'Dokumenti uytgedin'];
   List<String> changeLanguage = ['Change language', 'Dilini uytgedin'];
-}
+  List<String> thereIsNoSuchEmployee = ['There is no such employee !', 'Olar yaly isgar yok !'];
+  List<String> turkmen = ['Turkmen', 'Turkmence'];
+  List<String> english = ['English', 'Inlisce'];
+  List<String> passwordAndConfirm = ['Password and Confirm Password are not same', 'Passordynyzy dogry girizin'];
+  List<String> thereIsNoResignedDate = ['There is no resignDate', 'Isgar isleyar'];
+  List<String> updateEmployee = ['Edit the Employee', 'Isgari uytgetmek'];
+  List<String> thereIsNoAnyDocument = ['There is no any document', 'Hic hili dokument yok'];
+  List<String> docInfo = ['Document Information','Dokumntin informasiyasy'];
+  }
 

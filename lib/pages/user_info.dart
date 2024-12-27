@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:new_project/model/user_model.dart';
+import 'package:new_project/pages/translation.dart';
 
 class EmployeeInfo extends StatelessWidget {
+  final int selectedLanguageIndex;
   final Employee employeeInformation;
-  EmployeeInfo({super.key, required this.employeeInformation});
+  EmployeeInfo({super.key, required this.employeeInformation, required this.selectedLanguageIndex});
 
   late final DateTime? timeData = employeeInformation.resignDate;
-
+  Translation translation = Translation();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,7 +23,7 @@ class EmployeeInfo extends StatelessWidget {
         ),
         backgroundColor: Colors.blueGrey[300],
         title: Text(
-          'Employee information',
+          translation.employeeInfo[selectedLanguageIndex],
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
@@ -54,7 +56,7 @@ class EmployeeInfo extends StatelessWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.mail),
-              title: const Text('Email address'),
+              title: Text(translation.emailAddress[selectedLanguageIndex]),
               subtitle: Text(employeeInformation.email!),
             ),
           ),
@@ -62,7 +64,7 @@ class EmployeeInfo extends StatelessWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.phone),
-              title: const Text('Phone number'),
+              title: Text(translation.phoneNumber[selectedLanguageIndex]),
               subtitle: Text(employeeInformation.phoneNumber),
             ),
           ),
@@ -70,7 +72,7 @@ class EmployeeInfo extends StatelessWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.date_range),
-              title: const Text('Birth day'),
+              title: Text(translation.birthDay[selectedLanguageIndex]),
               subtitle: Text(
                 DateFormat('dd/MM/yyyy').format(employeeInformation.birthDate),
               ),
@@ -80,10 +82,10 @@ class EmployeeInfo extends StatelessWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.date_range),
-              title: const Text('Resign Date'),
+              title: Text(translation.resignedDate[selectedLanguageIndex]),
               subtitle: Text(
                 timeData == null
-                    ? 'There is no resignDate'
+                    ? translation.thereIsNoResignedDate[selectedLanguageIndex]
                     : DateFormat('dd/MM/yyyy').format(timeData!),
               ),
             ),
@@ -92,7 +94,7 @@ class EmployeeInfo extends StatelessWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.date_range),
-              title: const Text('Hired date'),
+              title: Text(translation.hiredDate[selectedLanguageIndex]),
               subtitle: Text(
                 DateFormat('dd/MM/yyyy').format(employeeInformation.hireDate),
               ),

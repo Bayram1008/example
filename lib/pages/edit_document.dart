@@ -4,18 +4,21 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:new_project/model/user_model.dart';
 import 'package:new_project/pages/all_documents.dart';
+import 'package:new_project/pages/translation.dart';
 import 'package:new_project/service/api_service.dart';
 import 'package:new_project/service/savedData.dart';
 
 class EditDocument extends StatefulWidget {
+  final int selectedLanguageIndex;
   final Document editDocument;
-  const EditDocument({super.key, required this.editDocument});
+  const EditDocument({super.key, required this.editDocument, required this.selectedLanguageIndex});
 
   @override
   State<EditDocument> createState() => _EditDocumentState();
 }
 
 class _EditDocumentState extends State<EditDocument> {
+  Translation translation = Translation();
   ApiService apiService = ApiService();
   TokenService tokenService = TokenService();
 
@@ -45,7 +48,7 @@ class _EditDocumentState extends State<EditDocument> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit the document'),
+        title: Text(translation.editTheDocument[widget.selectedLanguageIndex]),
         centerTitle: true,
       ),
       body: Form(
@@ -58,7 +61,7 @@ class _EditDocumentState extends State<EditDocument> {
                   avatarFile = pickedFile;
                 });
               },
-              child: Text('Change file'),
+              child: Text(translation.chooseFile[widget.selectedLanguageIndex]),
             ),
             SizedBox(
               height: 16.0,
@@ -126,12 +129,12 @@ class _EditDocumentState extends State<EditDocument> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AllDocuments(documents: newDocuments),
+                    builder: (context) => AllDocuments(documents: newDocuments, selectedLanguageIndex: widget.selectedLanguageIndex,),
                   ),
                 );
               },
               child: Text(
-                'Edit',
+                translation.editButton[widget.selectedLanguageIndex],
                 style: TextStyle(
                   color: Colors.green,
                   fontSize: 24.0,

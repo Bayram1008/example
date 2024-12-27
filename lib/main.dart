@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:new_project/pages/splash_screen.dart';
+import 'package:new_project/pages/translation.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider(
+    create: (context) => Translation(),
+    child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {

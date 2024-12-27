@@ -5,18 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:new_project/model/user_model.dart';
 import 'package:new_project/pages/employee_doc.dart';
+import 'package:new_project/pages/translation.dart';
 import 'package:new_project/service/api_service.dart';
 import 'package:new_project/service/savedData.dart';
 
 class NewDocument extends StatefulWidget {
+  final int selectedLanguageIndex;
   final int? id;
-  const NewDocument({super.key,required this.id});
+  const NewDocument({super.key,required this.id, required this.selectedLanguageIndex});
 
   @override
   State<NewDocument> createState() => _NewDocumentState();
 }
 
 class _NewDocumentState extends State<NewDocument> {
+  Translation translation = Translation();
   TokenService tokenService = TokenService();
 
   ApiService apiService = ApiService();
@@ -77,7 +80,7 @@ class _NewDocumentState extends State<NewDocument> {
       appBar: AppBar(
         backgroundColor: Colors.blueGrey[300],
         title: Text(
-          'New Document',
+          translation.newDocument[widget.selectedLanguageIndex],
           style: TextStyle(
             color: Colors.white,
             fontSize: 20.0,
@@ -98,7 +101,7 @@ class _NewDocumentState extends State<NewDocument> {
                 });
               },
               child: Text(
-                'Choose the file',
+                translation.chooseFile[widget.selectedLanguageIndex],
                 style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
               ),
             ),
@@ -115,8 +118,8 @@ class _NewDocumentState extends State<NewDocument> {
               },
               controller: documentName,
               style: TextStyle(fontSize: 18.0),
-              decoration: const InputDecoration(
-                labelText: 'Document name',
+              decoration: InputDecoration(
+                labelText: translation.documentName[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
             ),
@@ -125,8 +128,8 @@ class _NewDocumentState extends State<NewDocument> {
               focusNode: documentTypeFocusNode,
               controller: documentType,
               style: TextStyle(fontSize: 18.0),
-              decoration: const InputDecoration(
-                labelText: 'Document type',
+              decoration: InputDecoration(
+                labelText: translation.documentType[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
             ),
@@ -136,8 +139,8 @@ class _NewDocumentState extends State<NewDocument> {
               style: TextStyle(fontSize: 18.0),
               onTap: () => selectDate(context, documentExpiredType),
               readOnly: true,
-              decoration: const InputDecoration(
-                labelText: 'Expired Date',
+              decoration: InputDecoration(
+                labelText: translation.expiredDate[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
             ),
@@ -151,7 +154,7 @@ class _NewDocumentState extends State<NewDocument> {
                     Navigator.pop(context);
                   },
                   child: Text(
-                    'Cancel',
+                    translation.cancelButton[widget.selectedLanguageIndex],
                     style: TextStyle(
                       color: Colors.red,
                       fontSize: 20.0,
@@ -180,11 +183,11 @@ class _NewDocumentState extends State<NewDocument> {
 
                     final employeeDoc = await apiService.getEmployeeDocuments(widget.id, await tokenService.getAccessToken());
 
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> EmployeeDoc(id: widget.id, employeeDocuments: employeeDoc,),),);
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> EmployeeDoc(id: widget.id, employeeDocuments: employeeDoc, selectedLanguageIndex: widget.selectedLanguageIndex,),),);
 
                   },
                   child: Text(
-                    'Add',
+                    translation.addButton[widget.selectedLanguageIndex],
                     style: TextStyle(
                       color: Colors.green,
                       fontSize: 20.0,
