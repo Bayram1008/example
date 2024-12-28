@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:new_project/model/user_model.dart';
 import 'package:new_project/pages/doc_info.dart';
@@ -5,6 +8,8 @@ import 'package:new_project/pages/edit_document.dart';
 import 'package:new_project/pages/translation.dart';
 import 'package:new_project/service/api_service.dart';
 import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class AllDocuments extends StatefulWidget {
   final int selectedLanguageIndex;
@@ -21,6 +26,73 @@ class AllDocuments extends StatefulWidget {
 class _AllDocumentsState extends State<AllDocuments> {
   Translation translation = Translation();
   ApiService apiService = ApiService();
+  final Dio dio =Dio();
+
+  bool isDownloading = false;
+  double downloadProgress = 0.0;
+
+  Future<void> downloadDocument(
+      String? accessToken, String filename, String? filePath) async {
+    if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
+      try {
+        dio.options.headers['Authorization'] = 'Bearer $accessToken';
+        print('We are in the downloadDocument under the dio.options.headers');
+        final status = await Permission.storage.request();
+        if (status.isGranted) {
+          print ('Hello Abdulla!!!!');
+          final directory = Directory('/storage/emulated/0/Download');
+          final exPath = directory.path;
+          await Directory(exPath).create(recursive: true);
+          if (directory != null) {
+            final savedPath = "${directory.path}/$filename";
+            setState(() {
+              isDownloading = true;
+            });
+            final response = await dio.download(filePath!, savedPath,
+                onReceiveProgress: (received, total) {
+              setState(() {
+                downloadProgress = received / total;
+              });
+            });
+            setState(() {
+              isDownloading = false;
+              downloadProgress = 0.0;
+            });
+            print('Document downloaded successfully to $savedPath');
+             if (response.statusCode == 200 || response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              duration: Duration(seconds: 1),
+              backgroundColor: Colors.green,
+              content: Text(
+                'Downloaded Succesfully',
+                style: TextStyle(color: Colors.white, fontSize: 24.0),
+              ),
+            ),
+          );
+          print('Document downloaded successfully to $filePath');
+        } else {
+          print('Failed to download document: ${response.data}');
+        }
+          }
+        }
+      } catch (e) {
+        print('Error in postDocumentToEmployee: $e');
+        throw Exception('Failed to post data');
+      }
+    } else if (accessToken != null) {
+      final String? refreshToken = await tokenService.getRefreshToken();
+      final responce = await dio.post(
+        'http://192.168.4.72:81/api/token/refresh/',
+        data: {'refresh': refreshToken},
+      );
+      if (responce.statusCode == 200) {
+        String newAccessToken = responce.data['access'];
+        tokenService.updateAccessToken(newAccessToken);
+        downloadDocument(newAccessToken, filename, filePath);
+      }
+    }
+  }
 
   void showOpenWithBottomSheet(BuildContext context, String? filePath) {
     showModalBottomSheet(
@@ -97,11 +169,10 @@ class _AllDocumentsState extends State<AllDocuments> {
                         children: [
                           IconButton(
                             onPressed: () async {
-                              await apiService.downloadDocument(
+                              downloadDocument(
                                   await tokenService.getAccessToken(),
                                   widget.documents![index].name,
-                                  widget.documents![index].filePath,
-                                  context);
+                                  widget.documents![index].filePath);
                             },
                             icon: Icon(
                               Icons.download,

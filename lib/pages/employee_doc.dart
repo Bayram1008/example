@@ -5,21 +5,75 @@ import 'package:new_project/pages/translation.dart';
 import 'package:new_project/service/api_service.dart';
 import 'package:new_project/service/savedData.dart';
 import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:dio/dio.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class EmployeeDoc extends StatefulWidget {
   final int selectedLanguageIndex;
   List<Document>? employeeDocuments;
   final int? id;
-  EmployeeDoc({super.key, required this.employeeDocuments, required this.id, required this.selectedLanguageIndex});
+  EmployeeDoc(
+      {super.key,
+      required this.employeeDocuments,
+      required this.id,
+      required this.selectedLanguageIndex});
 
   @override
   State<EmployeeDoc> createState() => _EmployeeDocState();
 }
 
 class _EmployeeDocState extends State<EmployeeDoc> {
+  final Dio dio = Dio();
   final ApiService apiService = ApiService();
   final TokenService tokenService = TokenService();
   final Translation translation = Translation();
+  bool isDownloading = false;
+  double downloadProgress = 0.0;
+
+  Future<void> downloadDocument(
+      String? accessToken, String filename, String? filePath) async {
+    if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
+      try {
+        dio.options.headers['Authorization'] = 'Bearer $accessToken';
+        print('We are in the downloadDocument under the dio.options.headers');
+        if (await Permission.storage.request().isGranted) {
+          final directory = await getExternalStorageDirectory();
+          if (directory != null) {
+            final savedPath = "${directory.path}/$filename";
+            setState(() {
+              isDownloading = true;
+            });
+            final response = await dio.download(filePath!, savedPath,
+                onReceiveProgress: (received, total) {
+              setState(() {
+                downloadProgress = received / total;
+              });
+            });
+            setState(() {
+              isDownloading = false;
+              downloadProgress = 0.0;
+            });
+            print('Document downloaded successfully to $savedPath');
+          }
+        }
+      } catch (e) {
+        print('Error in postDocumentToEmployee: $e');
+        throw Exception('Failed to post data');
+      }
+    } else if (accessToken != null) {
+      final String? refreshToken = await tokenService.getRefreshToken();
+      final responce = await dio.post(
+        'http://192.168.4.72:81/api/token/refresh/',
+        data: {'refresh': refreshToken},
+      );
+      if (responce.statusCode == 200) {
+        String newAccessToken = responce.data['access'];
+        tokenService.updateAccessToken(newAccessToken);
+        downloadDocument(newAccessToken, filename, filePath);
+      }
+    }
+  }
 
   void showOpenWithBottomSheet(BuildContext context, String? filePath) {
     showModalBottomSheet(
@@ -100,12 +154,16 @@ class _EmployeeDocState extends State<EmployeeDoc> {
                         children: [
                           IconButton(
                             onPressed: () async {
-                              await apiService.downloadDocument(
+                              downloadDocument(
                                   await tokenService.getAccessToken(),
                                   widget.employeeDocuments![index].name,
-                                  widget.employeeDocuments![index].filePath, context);
+                                  widget.employeeDocuments![index].filePath);
                             },
-                            icon: Icon(Icons.download, size: 24.0, color: Colors.blueGrey,),
+                            icon: Icon(
+                              Icons.download,
+                              size: 24.0,
+                              color: Colors.blueGrey,
+                            ),
                           ),
                           IconButton(
                             onPressed: () async {
@@ -141,7 +199,8 @@ class _EmployeeDocState extends State<EmployeeDoc> {
             context,
             MaterialPageRoute(
               builder: (context) => NewDocument(
-                id: widget.id, selectedLanguageIndex: widget.selectedLanguageIndex,
+                id: widget.id,
+                selectedLanguageIndex: widget.selectedLanguageIndex,
               ),
             ),
           );

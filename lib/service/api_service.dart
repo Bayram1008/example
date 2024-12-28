@@ -372,51 +372,51 @@ class ApiService {
     }
   }
 
-  Future<void> downloadDocument(String? accessToken, String filename,
-      String? filePath, BuildContext context) async {
-    if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
-      try {
-        dio.options.headers['Authorization'] = 'Bearer $accessToken';
-        print('We are in the postData under the dio.options.headers');
+  // Future<void> downloadDocument(String? accessToken, String filename,
+  //     String? filePath, BuildContext context) async {
+  //   if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
+  //     try {
+  //       dio.options.headers['Authorization'] = 'Bearer $accessToken';
+  //       print('We are in the downloadDocument under the dio.options.headers');
 
-        final directory = await getApplicationDocumentsDirectory();
-        final savedPath = "${directory.path}/$filename";
+  //       final directory = await getApplicationDocumentsDirectory();
+  //       final savedPath = "${directory.path}/$filename";
 
-        final response = await dio.download(filePath!, savedPath);
-        print('File saved to the directory: $savedPath');
+  //       final response = await dio.download(filePath!, savedPath, );
+  //       print('File saved to the directory: $savedPath');
 
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              duration: Duration(seconds: 1),
-              backgroundColor: Colors.green,
-              content: Text(
-                'Downloaded Succesfully',
-                style: TextStyle(color: Colors.white, fontSize: 24.0),
-              ),
-            ),
-          );
-          print('Document downloaded successfully to $filePath');
-        } else {
-          print('Failed to download document: ${response.data}');
-        }
-      } catch (e) {
-        print('Error in postDocumentToEmployee: $e');
-        throw Exception('Failed to post data');
-      }
-    } else if (accessToken != null) {
-      final String? refreshToken = await tokenService.getRefreshToken();
-      final responce = await dio.post(
-        'http://192.168.4.72:81/api/token/refresh/',
-        data: {'refresh': refreshToken},
-      );
-      if (responce.statusCode == 200) {
-        String newAccessToken = responce.data['access'];
-        tokenService.updateAccessToken(newAccessToken);
-        downloadDocument(newAccessToken, filename, filePath, context);
-      }
-    }
-  }
+  //       if (response.statusCode == 200 || response.statusCode == 201) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             duration: Duration(seconds: 1),
+  //             backgroundColor: Colors.green,
+  //             content: Text(
+  //               'Downloaded Succesfully',
+  //               style: TextStyle(color: Colors.white, fontSize: 24.0),
+  //             ),
+  //           ),
+  //         );
+  //         print('Document downloaded successfully to $filePath');
+  //       } else {
+  //         print('Failed to download document: ${response.data}');
+  //       }
+  //     } catch (e) {
+  //       print('Error in postDocumentToEmployee: $e');
+  //       throw Exception('Failed to post data');
+  //     }
+  //   } else if (accessToken != null) {
+  //     final String? refreshToken = await tokenService.getRefreshToken();
+  //     final responce = await dio.post(
+  //       'http://192.168.4.72:81/api/token/refresh/',
+  //       data: {'refresh': refreshToken},
+  //     );
+  //     if (responce.statusCode == 200) {
+  //       String newAccessToken = responce.data['access'];
+  //       tokenService.updateAccessToken(newAccessToken);
+  //       downloadDocument(newAccessToken, filename, filePath, context);
+  //     }
+  //   }
+  // }
 
   Future<List<Document>?> getAllDocuments(String? accessToken) async {
     if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
