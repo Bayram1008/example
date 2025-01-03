@@ -19,6 +19,7 @@ class NewEmployee extends StatefulWidget {
 }
 
 class _NewEmployeeState extends State<NewEmployee> {
+  final formKey = GlobalKey<FormState>();
   final Translation translation = Translation();
   final serviceInNewEmployee = ApiService();
   final savedData = TokenService();
@@ -118,6 +119,7 @@ class _NewEmployeeState extends State<NewEmployee> {
         centerTitle: true,
       ),
       body: Form(
+        key: formKey,
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
@@ -159,6 +161,13 @@ class _NewEmployeeState extends State<NewEmployee> {
                 labelText: translation.lastName[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return translation
+                      .enterFirstName[widget.selectedLanguageIndex];
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -172,6 +181,13 @@ class _NewEmployeeState extends State<NewEmployee> {
                 labelText: translation.position[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return translation
+                      .enterLastName[widget.selectedLanguageIndex];
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -182,10 +198,18 @@ class _NewEmployeeState extends State<NewEmployee> {
               controller: newEmailController,
               style: TextStyle(fontSize: 18.0),
               decoration: InputDecoration(
-                labelText: translation.emailAddress[widget.selectedLanguageIndex],
+                labelText:
+                    translation.emailAddress[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                if (value == null || value.isEmpty || value.contains('@')) {
+                  return translation
+                      .enterEmailAddress[widget.selectedLanguageIndex];
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -196,11 +220,17 @@ class _NewEmployeeState extends State<NewEmployee> {
               controller: newPhoneController,
               style: TextStyle(fontSize: 18.0),
               decoration: InputDecoration(
-                labelText: translation.phoneNumber[widget.selectedLanguageIndex],
+                labelText:
+                    translation.phoneNumber[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
                 hintText: '-- ------',
-                prefixIcon: Center(child: Text('+993', style: TextStyle(fontSize: 18.0),)),
-                prefixIconConstraints: BoxConstraints(maxWidth: 60, minWidth: 50),
+                prefixIcon: Center(
+                    child: Text(
+                  '+993',
+                  style: TextStyle(fontSize: 18.0),
+                )),
+                prefixIconConstraints:
+                    BoxConstraints(maxWidth: 60, minWidth: 50),
                 floatingLabelAlignment: FloatingLabelAlignment.start,
               ),
               keyboardType: TextInputType.phone,
@@ -210,6 +240,13 @@ class _NewEmployeeState extends State<NewEmployee> {
                 LengthLimitingTextInputFormatter(8),
                 CardNumberInputFormatter(),
               ],
+              validator: (value) {
+                if (value == null || value.isEmpty || value.length != 8) {
+                  return translation
+                      .enterPhoneNumber[widget.selectedLanguageIndex];
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -225,6 +262,13 @@ class _NewEmployeeState extends State<NewEmployee> {
                 labelText: translation.birthDay[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return translation
+                      .selectBirthdayDate[widget.selectedLanguageIndex];
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             Row(
@@ -243,9 +287,17 @@ class _NewEmployeeState extends State<NewEmployee> {
                     readOnly: true,
                     onTap: () => selectDate(context, newHiredDayController),
                     decoration: InputDecoration(
-                      labelText: translation.hiredDate[widget.selectedLanguageIndex],
+                      labelText:
+                          translation.hiredDate[widget.selectedLanguageIndex],
                       border: OutlineInputBorder(),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return translation
+                            .selectHiredDate[widget.selectedLanguageIndex];
+                      }
+                      return null;
+                    },
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -256,7 +308,8 @@ class _NewEmployeeState extends State<NewEmployee> {
                     readOnly: true,
                     onTap: () => selectDate(context, newResignedDayController),
                     decoration: InputDecoration(
-                      labelText: translation.resignedDate[widget.selectedLanguageIndex],
+                      labelText: translation
+                          .resignedDate[widget.selectedLanguageIndex],
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -283,70 +336,83 @@ class _NewEmployeeState extends State<NewEmployee> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    if (avatarFile == null) {
+                    if (formKey.currentState!.validate()) {
+                      if (avatarFile == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(translation
+                                .chooseImage[widget.selectedLanguageIndex]),
+                          ),
+                        );
+                        return print('This is the avatarFile:${avatarFile}');
+                      }
+                      print('This is the avatarFile:${avatarFile!.path}');
+                      Employee newUser = Employee(
+                        firstName: newFirstNameController.text,
+                        lastName: newLastNameController.text,
+                        birthDate: DateTime.parse(newBirthdayController.text),
+                        phoneNumber: newPhoneController.text,
+                        position: newPositionController.text,
+                        email: newEmailController.text,
+                        hireDate: DateTime.parse(newHiredDayController.text),
+                        documents: [],
+                      );
+                      print('hello world, we are under the newUser');
+                      try {
+                        FormData newData = FormData.fromMap({
+                          'avatar': [
+                            await MultipartFile.fromFile(avatarFile!.path),
+                          ],
+                          'first_name': newUser.firstName,
+                          'last_name': newUser.lastName,
+                          'birth_date': DateFormat(
+                            'yyyy-MM-dd',
+                          ).format(newUser.birthDate),
+                          'phone_number': newUser.phoneNumber,
+                          'position': newUser.position,
+                          'email': newUser.email,
+                          'hire_date': DateFormat(
+                            'yyyy-MM-dd',
+                          ).format(newUser.hireDate),
+                        });
+                        print(
+                          'This is the path of avatarFile${avatarFile!.path}',
+                        );
+                        print('We are below of the newData');
+                        print(
+                          'We have to post the following data ${newData.fields}',
+                        );
+                        await serviceInNewEmployee.postData(
+                          newData,
+                          await savedData.getAccessToken(),
+                        );
+
+                        final newEmployeeList = await serviceInNewEmployee
+                            .getData(await savedData.getAccessToken(), 0, 12);
+
+                        if (!mounted) return;
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                UserList(employeeList: newEmployeeList),
+                          ),
+                        );
+                      } catch (e) {
+                        print('Error: ${e.toString()}');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: ${e.toString()}')),
+                        );
+                      }
+                    } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Please select an avatar image'),
+                          backgroundColor: Colors.redAccent,
+                          content: Text(
+                            translation.fillBoxesCorrectly[widget.selectedLanguageIndex],
+                            style: TextStyle(color: Colors.white54),
+                          ),
                         ),
-                      );
-                      return print('This is the avatarFile:${avatarFile}');
-                    }
-                    print('This is the avatarFile:${avatarFile!.path}');
-                    Employee newUser = Employee(
-                      firstName: newFirstNameController.text,
-                      lastName: newLastNameController.text,
-                      birthDate: DateTime.parse(newBirthdayController.text),
-                      phoneNumber: newPhoneController.text,
-                      position: newPositionController.text,
-                      email: newEmailController.text,
-                      hireDate: DateTime.parse(newHiredDayController.text), documents: [],
-                    );
-                    print('hello world, we are under the newUser');
-                    try {
-                      FormData newData = FormData.fromMap({
-                        'avatar': [
-                          await MultipartFile.fromFile(avatarFile!.path),
-                        ],
-                        'first_name': newUser.firstName,
-                        'last_name': newUser.lastName,
-                        'birth_date': DateFormat(
-                          'yyyy-MM-dd',
-                        ).format(newUser.birthDate),
-                        'phone_number': newUser.phoneNumber,
-                        'position': newUser.position,
-                        'email': newUser.email,
-                        'hire_date': DateFormat(
-                          'yyyy-MM-dd',
-                        ).format(newUser.hireDate),
-                      });
-                      print(
-                        'This is the path of avatarFile${avatarFile!.path}',
-                      );
-                      print('We are below of the newData');
-                      print(
-                        'We have to post the following data ${newData.fields}',
-                      );
-                      await serviceInNewEmployee.postData(
-                        newData,
-                        await savedData.getAccessToken(),
-                      );
-
-                      final newEmployeeList = await serviceInNewEmployee
-                          .getData(await savedData.getAccessToken(), 0, 12);
-
-                      if (!mounted) return;
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) =>
-                                  UserList(employeeList: newEmployeeList),
-                        ),
-                      );
-                    } catch (e) {
-                      print('Error: ${e.toString()}');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: ${e.toString()}')),
                       );
                     }
                   },

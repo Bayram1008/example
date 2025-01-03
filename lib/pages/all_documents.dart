@@ -8,93 +8,110 @@ import 'package:new_project/pages/edit_document.dart';
 import 'package:new_project/pages/translation.dart';
 import 'package:new_project/service/api_service.dart';
 import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AllDocuments extends StatefulWidget {
   final int selectedLanguageIndex;
   List<Document>? documents;
-  AllDocuments(
-      {super.key,
-      required this.documents,
-      required this.selectedLanguageIndex});
+
+  AllDocuments({
+    Key? key,
+    required this.documents,
+    required this.selectedLanguageIndex,
+  }) : super(key: key);
 
   @override
   State<AllDocuments> createState() => _AllDocumentsState();
 }
 
 class _AllDocumentsState extends State<AllDocuments> {
-  Translation translation = Translation();
-  ApiService apiService = ApiService();
-  final Dio dio =Dio();
+  final Translation translation = Translation();
+  final ApiService apiService = ApiService();
+  final Dio dio = Dio();
 
   bool isDownloading = false;
   double downloadProgress = 0.0;
+  String? documentFormat;
 
   Future<void> downloadDocument(
-      String? accessToken, String filename, String? filePath) async {
-    if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
-      try {
-        dio.options.headers['Authorization'] = 'Bearer $accessToken';
-        print('We are in the downloadDocument under the dio.options.headers');
-        final status = await Permission.storage.request();
-        if (status.isGranted) {
-          print ('Hello Abdulla!!!!');
-          final directory = Directory('/storage/emulated/0/Download');
-          final exPath = directory.path;
-          await Directory(exPath).create(recursive: true);
-          if (directory != null) {
-            final savedPath = "${directory.path}/$filename";
-            setState(() {
-              isDownloading = true;
-            });
-            final response = await dio.download(filePath!, savedPath,
-                onReceiveProgress: (received, total) {
-              setState(() {
-                downloadProgress = received / total;
-              });
-            });
-            setState(() {
-              isDownloading = false;
-              downloadProgress = 0.0;
-            });
-            print('Document downloaded successfully to $savedPath');
-             if (response.statusCode == 200 || response.statusCode == 201) {
+      String? accessToken, String filename, String? filePath, String? documentFormat) async {
+    if (accessToken == null && filePath == null && filePath!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid file or access token')),
+      );
+      return;
+    }
+
+    try {
+      dio.options.headers['Authorization'] = 'Bearer $accessToken';
+      //print('we are under the dio.options.headers');
+      final status = await Permission.manageExternalStorage.request();
+      //print('we are under of the permission.storage.request');
+      //print('${status.isGranted}');
+      print('$status');
+      if (status.isGranted) {
+        print('we are in the status.isGranted');
+        final directory = Directory('/storage/emulated/0/Download');
+        if (!directory.existsSync()) {
+          directory.createSync(recursive: true);
+        }
+
+        final savedPath = "${directory.path}/$filename.$documentFormat";
+        setState(() => isDownloading = true);
+
+        final response = await dio.download(filePath!, savedPath,
+            onReceiveProgress: (received, total) {
+          setState(() => downloadProgress = received / total);
+        });
+
+        setState(() {
+          isDownloading = false;
+          downloadProgress = 0.0;
+        });
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              duration: Duration(seconds: 1),
+              duration: const Duration(seconds: 2),
               backgroundColor: Colors.green,
               content: Text(
-                'Downloaded Succesfully',
-                style: TextStyle(color: Colors.white, fontSize: 24.0),
+                'Downloaded Successfully to $savedPath',
+                style: TextStyle(color: Colors.white, fontSize: 16.0),
               ),
             ),
           );
-          print('Document downloaded successfully to $filePath');
         } else {
-          print('Failed to download document: ${response.data}');
+          throw Exception('Failed to download document');
         }
-          }
-        }
-      } catch (e) {
-        print('Error in postDocumentToEmployee: $e');
-        throw Exception('Failed to post data');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Storage permission denied')),
+        );
       }
-    } else if (accessToken != null) {
-      final String? refreshToken = await tokenService.getRefreshToken();
-      final responce = await dio.post(
-        'http://192.168.4.72:81/api/token/refresh/',
-        data: {'refresh': refreshToken},
+    } catch (e) {
+      print('Error during download: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
       );
-      if (responce.statusCode == 200) {
-        String newAccessToken = responce.data['access'];
-        tokenService.updateAccessToken(newAccessToken);
-        downloadDocument(newAccessToken, filename, filePath);
-      }
     }
   }
 
+  Future<String> getEmployeeName(int index) async {
+    final accessToken = await tokenService.getAccessToken();
+    if (accessToken == null || widget.documents == null) return "Unknown";
+
+    return await apiService.getEmployeeById(
+        accessToken, widget.documents![index].employee);
+  }
+
   void showOpenWithBottomSheet(BuildContext context, String? filePath) {
+    if (filePath == null || filePath.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('File not found')),
+      );
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -103,19 +120,19 @@ class _AllDocumentsState extends State<AllDocuments> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(Icons.file_open),
-                title: Text('Open with default app'),
+                leading: const Icon(Icons.file_open),
+                title: const Text('Open with default app'),
                 onTap: () async {
-                  final result = await OpenFile.open(filePath!);
+                  final result = await OpenFile.open(filePath);
                   Navigator.pop(context);
-                  if (result.type != ResultType.done) {
+	if (result.type != ResultType.done) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Failed to open file')),
                     );
                   }
                 },
               ),
-              Divider(),
+              const Divider(),
             ],
           ),
         );
@@ -123,20 +140,14 @@ class _AllDocumentsState extends State<AllDocuments> {
     );
   }
 
-  Future<String> getEmployeeName(int index) async {
-    final employeeName = await apiService.getEmployeeById(
-        await tokenService.getAccessToken(), widget.documents![index].employee);
-    return employeeName;
-  }
-
-  @override
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(translation.allDocuments[widget.selectedLanguageIndex]),
         centerTitle: true,
       ),
-      body: widget.documents!.isEmpty
+      body: widget.documents == null || widget.documents!.isEmpty
           ? Center(
               child: Text(translation
                   .thereIsNoAnyDocument[widget.selectedLanguageIndex]),
@@ -144,18 +155,19 @@ class _AllDocumentsState extends State<AllDocuments> {
           : ListView.builder(
               itemCount: widget.documents!.length,
               itemBuilder: (context, index) {
+                final document = widget.documents![index];
                 return Card(
                   child: ListTile(
-                    leading: Icon(Icons.note, size: 24.0),
-                    title: Text(widget.documents![index].name),
-                    subtitle: Text(widget.documents![index].type),
+                    leading: const Icon(Icons.note, size: 24.0),
+                    title: Text(document.name),
+                    subtitle: Text(document.type),
                     onTap: () async {
                       final employeeName = await getEmployeeName(index);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => DocInfo(
-                            documentInfo: widget.documents![index],
+                            documentInfo: document,
                             employeeName: employeeName,
                             selectedLanguageIndex: widget.selectedLanguageIndex,
                           ),
@@ -164,17 +176,20 @@ class _AllDocumentsState extends State<AllDocuments> {
                     },
                     trailing: SizedBox(
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
                             onPressed: () async {
+                              List<String> documentData = document.filePath!.split('.');
+                              documentFormat = documentData.last;
                               downloadDocument(
-                                  await tokenService.getAccessToken(),
-                                  widget.documents![index].name,
-                                  widget.documents![index].filePath);
+                                await tokenService.getAccessToken(),
+                                document.name,
+                                document.filePath,
+                                documentFormat
+                              );
                             },
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.download,
                               size: 24.0,
                               color: Colors.blueGrey,
@@ -186,14 +201,14 @@ class _AllDocumentsState extends State<AllDocuments> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => EditDocument(
-                                    editDocument: widget.documents![index],
+                                    editDocument: document,
                                     selectedLanguageIndex:
                                         widget.selectedLanguageIndex,
                                   ),
                                 ),
                               );
                             },
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.edit,
                               size: 24.0,
                               color: Colors.green,
@@ -202,19 +217,19 @@ class _AllDocumentsState extends State<AllDocuments> {
                           IconButton(
                             onPressed: () async {
                               await apiService.deleteDocument(
-                                widget.documents![index].id,
+                                document.id,
                                 await tokenService.getAccessToken(),
                               );
-                              final newDocuments =
+                              final updatedDocuments =
                                   await apiService.getEmployeeDocuments(
-                                widget.documents![index].id,
+                                document.id,
                                 await tokenService.getAccessToken(),
                               );
                               setState(() {
-                                widget.documents = newDocuments;
+                                widget.documents = updatedDocuments;
                               });
                             },
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.delete,
                               size: 24.0,
                               color: Colors.red,
@@ -222,7 +237,7 @@ class _AllDocumentsState extends State<AllDocuments> {
                           ),
                         ],
                       ),
-                    ),
+),
                   ),
                 );
               },

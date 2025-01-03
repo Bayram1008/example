@@ -12,13 +12,15 @@ import 'package:new_project/service/savedData.dart';
 class NewDocument extends StatefulWidget {
   final int selectedLanguageIndex;
   final int? id;
-  const NewDocument({super.key,required this.id, required this.selectedLanguageIndex});
+  const NewDocument(
+      {super.key, required this.id, required this.selectedLanguageIndex});
 
   @override
   State<NewDocument> createState() => _NewDocumentState();
 }
 
 class _NewDocumentState extends State<NewDocument> {
+  final formKey = GlobalKey<FormState>();
   Translation translation = Translation();
   TokenService tokenService = TokenService();
 
@@ -72,6 +74,15 @@ class _NewDocumentState extends State<NewDocument> {
   }
 
   File? avatarFile;
+  String? selectedDocumentType;
+
+  List<String> documentTypes = [
+    'Zagran',
+    'Passport',
+    'Maglumat',
+    'Diplom',
+    'Hasiyetnama'
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +101,7 @@ class _NewDocumentState extends State<NewDocument> {
         centerTitle: true,
       ),
       body: Form(
+        key: formKey,
         child: ListView(
           padding: EdgeInsets.all(10.0),
           children: [
@@ -108,30 +120,37 @@ class _NewDocumentState extends State<NewDocument> {
             const SizedBox(height: 16.0),
             TextFormField(
               autofocus: true,
-              focusNode: documentNameFocusNode,
-              onFieldSubmitted: (_) {
-                changeField(
-                  context,
-                  documentNameFocusNode,
-                  documentTypeFocusNode,
-                );
-              },
               controller: documentName,
               style: TextStyle(fontSize: 18.0),
               decoration: InputDecoration(
-                labelText: translation.documentName[widget.selectedLanguageIndex],
+                labelText:
+                    translation.documentName[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return translation
+                      .enterDocumentName[widget.selectedLanguageIndex];
+                }
+              },
             ),
             const SizedBox(height: 16.0),
-            TextFormField(
-              focusNode: documentTypeFocusNode,
-              controller: documentType,
-              style: TextStyle(fontSize: 18.0),
+            DropdownButtonFormField(
+              hint:
+                  Text(translation.documentType[widget.selectedLanguageIndex]),
               decoration: InputDecoration(
-                labelText: translation.documentType[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
+              items: documentTypes.map((doc) {
+                return DropdownMenuItem(
+                  value: doc,
+                  child: Text(doc),
+                );
+              }).toList(),
+              onChanged: (doc) {
+                selectedDocumentType = doc;
+              },
+              value: selectedDocumentType,
             ),
             const SizedBox(height: 16.0),
             TextFormField(
@@ -140,7 +159,8 @@ class _NewDocumentState extends State<NewDocument> {
               onTap: () => selectDate(context, documentExpiredType),
               readOnly: true,
               decoration: InputDecoration(
-                labelText: translation.expiredDate[widget.selectedLanguageIndex],
+                labelText:
+                    translation.expiredDate[widget.selectedLanguageIndex],
                 border: OutlineInputBorder(),
               ),
             ),
@@ -164,27 +184,51 @@ class _NewDocumentState extends State<NewDocument> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    Document newDocument = Document(
-                      employee: widget.id,
-                      name: documentName.text,
-                      type: documentType.text,
-                      expiredDate: DateTime.parse(documentExpiredType.text), 
-                    );
-                    FormData query = FormData.fromMap({
-                      'employee':newDocument.employee,
-                      'name': newDocument.name,
-                      'type': newDocument.type,
-                      'expiry_date': DateFormat('yyyy-MM-dd').format(newDocument.expiredDate!),
-                      'file_path': [
+                    if (formKey.currentState!.validate()) {
+                      Document newDocument = Document(
+                        employee: widget.id,
+                        name: documentName.text,
+                        type: documentType.text,
+                        expiredDate: DateTime.parse(documentExpiredType.text),
+                      );
+                      FormData query = FormData.fromMap({
+                        'employee': newDocument.employee,
+                        'name': newDocument.name,
+                        'type': newDocument.type,
+                        'expiry_date': DateFormat('yyyy-MM-dd')
+                            .format(newDocument.expiredDate!),
+                        'file_path': [
                           await MultipartFile.fromFile(avatarFile!.path),
                         ],
-                    });
-                    await apiService.postDocument(await tokenService.getAccessToken(), query);
+                      });
+                      await apiService.postDocument(
+                          await tokenService.getAccessToken(), query);
 
-                    final employeeDoc = await apiService.getEmployeeDocuments(widget.id, await tokenService.getAccessToken());
+                      final employeeDoc = await apiService.getEmployeeDocuments(
+                          widget.id, await tokenService.getAccessToken());
 
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> EmployeeDoc(id: widget.id, employeeDocuments: employeeDoc, selectedLanguageIndex: widget.selectedLanguageIndex,),),);
-
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EmployeeDoc(
+                            id: widget.id,
+                            employeeDocuments: employeeDoc,
+                            selectedLanguageIndex: widget.selectedLanguageIndex,
+                          ),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.redAccent,
+                          content: Text(
+                            translation.fillBoxesCorrectly[
+                                widget.selectedLanguageIndex],
+                            style: TextStyle(color: Colors.white54),
+                          ),
+                        ),
+                      );
+                    }
                   },
                   child: Text(
                     translation.addButton[widget.selectedLanguageIndex],

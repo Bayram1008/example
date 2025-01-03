@@ -7,14 +7,16 @@ import 'package:new_project/service/savedData.dart';
 class UserProfile extends StatefulWidget {
   final int selectedLanguageIndex;
   UserProf? userProf;
-  UserProfile({super.key, required this.userProf, required this.selectedLanguageIndex});
+  UserProfile(
+      {super.key, required this.userProf, required this.selectedLanguageIndex});
 
   @override
   State<UserProfile> createState() => _UserProfileState();
 }
 
 class _UserProfileState extends State<UserProfile> {
-  final Translation translation =Translation();
+  final formKey = GlobalKey<FormState>();
+  final Translation translation = Translation();
   TextEditingController newPasswordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController newUsernameController = TextEditingController();
@@ -37,9 +39,9 @@ class _UserProfileState extends State<UserProfile> {
   bool hidePassword = true;
   bool hideConfirmPassword = true;
   Future<void> editUserProfile(
-      String? accessToken, String? username,String password , int? id) async {
+      String? accessToken, String password, int? id) async {
     if (newPasswordController.text == confirmPasswordController.text) {
-      await apiService.updateUserProfile(accessToken, username, password, id);
+      await apiService.updateUserProfile(accessToken, password, id);
       final newUserProf =
           await apiService.getUserInfo(await tokenService.getAccessToken());
       setState(() {
@@ -90,19 +92,19 @@ class _UserProfileState extends State<UserProfile> {
           SizedBox(
             height: 10.0,
           ),
-          Card(
-            child: ListTile(
-              leading: Icon(
-                Icons.security,
-                color: Colors.black,
-                size: 24.0,
-              ),
-              title: Text(
-                widget.userProf!.password,
-                style: TextStyle(color: Colors.black, fontSize: 24.0),
-              ),
-            ),
-          ),
+          // Card(
+          //   child: ListTile(
+          //     leading: Icon(
+          //       Icons.security,
+          //       color: Colors.black,
+          //       size: 24.0,
+          //     ),
+          //     title: Text(
+          //       widget.userProf!.password,
+          //       style: TextStyle(color: Colors.black, fontSize: 24.0),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -113,22 +115,24 @@ class _UserProfileState extends State<UserProfile> {
               return Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Form(
+                  key: formKey,
                   child: Center(
                     child: ListView(
                       children: [
-                        TextFormField(
-                          controller: newUsernameController,
-                          decoration: InputDecoration(
-                            labelText: translation.username[widget.selectedLanguageIndex],
-                            border: const OutlineInputBorder(),
-                          ),
-                        ),
+                        // TextFormField(
+                        //   controller: newUsernameController,
+                        //   decoration: InputDecoration(
+                        //     labelText: translation.username[widget.selectedLanguageIndex],
+                        //     border: const OutlineInputBorder(),
+                        //   ),
+                        // ),
                         const SizedBox(height: 8.0),
                         TextFormField(
                           controller: newPasswordController,
                           obscureText: hidePassword,
                           decoration: InputDecoration(
-                            labelText: translation.newPassword[widget.selectedLanguageIndex],
+                            labelText: translation
+                                .newPassword[widget.selectedLanguageIndex],
                             border: const OutlineInputBorder(),
                             suffixIcon: IconButton(
                               onPressed: () {
@@ -136,7 +140,9 @@ class _UserProfileState extends State<UserProfile> {
                                   hidePassword = !hidePassword;
                                 });
                               },
-                              icon: Icon(hidePassword ? Icons.visibility : Icons.visibility_off),
+                              icon: Icon(hidePassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off),
                             ),
                           ),
                         ),
@@ -145,7 +151,8 @@ class _UserProfileState extends State<UserProfile> {
                           controller: confirmPasswordController,
                           obscureText: hideConfirmPassword,
                           decoration: InputDecoration(
-                            labelText: translation.confirmPassword[widget.selectedLanguageIndex],
+                            labelText: translation
+                                .confirmPassword[widget.selectedLanguageIndex],
                             border: const OutlineInputBorder(),
                             suffixIcon: IconButton(
                               onPressed: () {
@@ -153,9 +160,19 @@ class _UserProfileState extends State<UserProfile> {
                                   hideConfirmPassword = !hideConfirmPassword;
                                 });
                               },
-                              icon: Icon(hideConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                              icon: Icon(hideConfirmPassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off),
                             ),
                           ),
+                          validator: (value) {
+                            if (confirmPasswordController.text !=
+                                newPasswordController.text) {
+                              return translation.enterConfirmPassword[
+                                  widget.selectedLanguageIndex];
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 8.0),
                         Row(
@@ -167,20 +184,38 @@ class _UserProfileState extends State<UserProfile> {
                                 Navigator.pop(context);
                               },
                               child: Text(
-                                translation.cancelButton[widget.selectedLanguageIndex],
+                                translation
+                                    .cancelButton[widget.selectedLanguageIndex],
                                 style: TextStyle(
                                     color: Colors.red, fontSize: 20.0),
                               ),
                             ),
                             ElevatedButton(
                               onPressed: () async {
-                                UserProf newUserInfo = UserProf(
-                                    password: newPasswordController.text,
-                                    username: newUsernameController.text);
-                                    editUserProfile(await tokenService.getAccessToken(), newUserInfo.username, newUserInfo.password, widget.userProf!.id);
+                                if (formKey.currentState!.validate()) {
+                                  UserProf newUserInfo = UserProf(
+                                      password: newPasswordController.text,
+                                      username: newUsernameController.text);
+                                  editUserProfile(
+                                      await tokenService.getAccessToken(),
+                                      newUserInfo.password,
+                                      widget.userProf!.id);
+                                  clear();
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: Colors.redAccent,
+                                      content: Text(
+                                        translation.fillBoxesCorrectly[widget.selectedLanguageIndex],
+                                        style: TextStyle(color: Colors.white54),
+                                      ),
+                                    ),
+                                  );
+                                }
                               },
                               child: Text(
-                                translation.editButton[widget.selectedLanguageIndex],
+                                translation
+                                    .editButton[widget.selectedLanguageIndex],
                                 style: TextStyle(
                                     color: Colors.green, fontSize: 20.0),
                               ),

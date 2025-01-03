@@ -1,8 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'package:new_project/model/user_model.dart';
 import 'package:new_project/service/savedData.dart';
-import 'package:path_provider/path_provider.dart';
 
 List<dynamic> information = [];
 
@@ -45,7 +43,7 @@ class ApiService {
   Future<List<Employee>?> getData(
       String? accessToken, int offset, int? limit) async {
     if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
-      print(accessToken);
+      //print(accessToken);
       try {
         dio.options.headers['Authorization'] = 'Bearer $accessToken';
 
@@ -60,22 +58,22 @@ class ApiService {
           response = await dio.get('employees/', queryParameters: queryMap);
         }
 
-        print('We are in getData');
+        //print('We are in getData');
 
         if (response.statusCode == 200) {
-          print(response.statusCode);
+          //print(response.statusCode);
           final information = response.data;
-          print(information);
+         // print(information);
           final list = EmployeeList.fromJson(information);
-          print('Bu list: ${list}');
+          //print('Bu list: ${list}');
           final netije = list.results?.map((e) => Employee.fromJson(e)).toList();
-          print('Bu netije: ${netije}');
+          //print('Bu netije: ${netije}');
           return netije;
         } else {
           throw Exception('Something went wrong in getData');
         }
       } catch (e) {
-        print('Error in getData: $e');
+        //print('Error in getData: $e');
         throw Exception('Failed to fetch data');
       }
     } else if (tokenService.isTokenExpired(accessToken!)) {
@@ -140,9 +138,9 @@ class ApiService {
         } else {
           print('Failed to delete data: ${response.data}');
         }
-      } catch (e) {
-        print('Error in deleteData: $e');
-        throw Exception('Failed to delete data');
+      } catch (error) {
+        print('Error in deleteData: $error');
+        throw Exception('Failed to delete data: $error');
       }
     } else if (accessToken != null) {
       final String? refreshToken = await tokenService.getRefreshToken();
@@ -420,19 +418,19 @@ class ApiService {
 
   Future<List<Document>?> getAllDocuments(String? accessToken) async {
     if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
-      print(accessToken);
+      //print(accessToken);
       try {
         dio.options.headers['Authorization'] = 'Bearer $accessToken';
 
-        print('We are in getData');
+        //print('We are in getData');
         final response = await dio.get('documents/');
 
         if (response.statusCode == 200) {
-          print(response.statusCode);
+          //print(response.statusCode);
           final information = response.data;
-          print(information);
+          //print(information);
           final list = Documents.fromJson(information);
-          print('Bu list: ${list}');
+          //print('Bu list: ${list}');
           final netije =
               list.results!.map((e) => Document.fromJson(e)).toList();
           return netije;
@@ -440,7 +438,7 @@ class ApiService {
           throw Exception('Something went wrong in getData');
         }
       } catch (e) {
-        print('Error in getData: $e');
+       // print('Error in getData: $e');
         throw Exception('Failed to fetch data');
       }
     } else if (tokenService.isTokenExpired(accessToken!)) {
@@ -569,14 +567,14 @@ class ApiService {
     return null;
   }
   Future<void> updateUserProfile(
-      String? accessToken, String? username, String password, int? id) async {
+      String? accessToken, String password, int? id) async {
     if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
       try {
         dio.options.headers['Authorization'] = 'Bearer $accessToken';
         print('We are in the postData under the dio.options.headers');
-        final response = await dio.put(
+        final response = await dio.patch(
           'users/$id/',
-          data: {'username':username, 'password':password},
+          data: {'password':password},
         );
         print('We just post the user');
 
@@ -598,7 +596,7 @@ class ApiService {
       if (responce.statusCode == 200) {
         String newAccessToken = responce.data['access'];
         tokenService.updateAccessToken(newAccessToken);
-        updateUserProfile(newAccessToken, username, password, id);
+        updateUserProfile(newAccessToken, password, id);
       }
     }
   }

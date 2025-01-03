@@ -25,8 +25,8 @@ class _UserListState extends State<UserList> {
   final ApiService apiService = ApiService();
   final TokenService tokenService = TokenService();
   final ScrollController scrollController = ScrollController();
-  int offset = 12;
-  final int limit = 12;
+  int offset = 10;
+  final int limit = 10;
 
   TextEditingController newFirstNameController = TextEditingController();
   TextEditingController newLastNameController = TextEditingController();
@@ -70,15 +70,16 @@ class _UserListState extends State<UserList> {
     try {
       final newEmployees = await apiService.getData(
         await tokenService.getAccessToken(),
-        limit,
         offset,
+        limit,
       );
       setState(() {
-        offset += limit;
+        offset = offset + limit;
         filteredEmployeeList.addAll(newEmployees!);
         if (newEmployees.length < limit) {
           _hasMore = false;
         }
+        print(offset);
       });
     } catch (e) {
       print('Error fetching items: $e');
@@ -185,418 +186,412 @@ class _UserListState extends State<UserList> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => Translation(),
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          centerTitle: true,
-          backgroundColor: Colors.blueGrey[400],
-          title: Text(
-            translation.listOfEmployees[selectedLanguageIndex],
-            style: TextStyle(
-              fontSize: 24.0,
-              fontWeight: FontWeight.bold,
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: Colors.blueGrey[400],
+        title: Text(
+          translation.listOfEmployees[selectedLanguageIndex],
+          style: TextStyle(
+            fontSize: 24.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () async {
+              final allDocuments = await apiService
+                  .getAllDocuments(await tokenService.getAccessToken());
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AllDocuments(
+                    documents: allDocuments,
+                    selectedLanguageIndex: selectedLanguageIndex,
+                  ),
+                ),
+              );
+            },
+            icon: Icon(
+              Icons.folder,
               color: Colors.white,
             ),
           ),
-          actions: [
-            IconButton(
-              onPressed: () async {
-                final allDocuments = await apiService
-                    .getAllDocuments(await tokenService.getAccessToken());
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AllDocuments(
-                      documents: allDocuments, selectedLanguageIndex: selectedLanguageIndex,
+          SizedBox(
+            width: 8.0,
+          ),
+          IconButton(
+            color: Colors.white,
+            icon: Icon(Icons.search),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text(translation.searchBar[selectedLanguageIndex]),
+                    content: Form(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextFormField(
+                            controller:
+                                newFirstNameControllerForSearchInGetData,
+                            decoration: InputDecoration(
+                              labelText:
+                                  translation.firstName[selectedLanguageIndex],
+                              border: const OutlineInputBorder(),
+                              suffixIcon: _isLoading
+                                  ? CircularProgressIndicator()
+                                  : IconButton(
+                                      icon: Icon(Icons.clear),
+                                      onPressed: () {
+                                        newFirstNameControllerForSearchInGetData
+                                            .clear();
+                                      },
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 8.0),
+                          TextFormField(
+                            controller:
+                                newLastNameControllerForSearchInPostData,
+                            decoration: InputDecoration(
+                              labelText:
+                                  translation.lastName[selectedLanguageIndex],
+                              border: const OutlineInputBorder(),
+                              suffixIcon: _isLoading
+                                  ? CircularProgressIndicator()
+                                  : IconButton(
+                                      icon: Icon(Icons.clear),
+                                      onPressed: () {
+                                        newLastNameControllerForSearchInPostData
+                                            .clear;
+                                      },
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-              icon: Icon(
-                Icons.folder,
-                color: Colors.white,
+                    actions: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              newFirstNameControllerForSearchInGetData.clear();
+                              newLastNameControllerForSearchInPostData.clear();
+                              setState(() {
+                                filteredEmployeeList = widget.employeeList!;
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              translation.cancelButton[selectedLanguageIndex],
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              newFirstNameControllerForSearchInGetData.clear();
+                              newLastNameControllerForSearchInPostData.clear();
+                              setState(() {
+                                filteredEmployeeList = widget.employeeList!;
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              translation.clearButton[selectedLanguageIndex],
+                              style: TextStyle(color: Colors.blue),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              if (newFirstNameControllerForSearchInGetData
+                                  .text.isNotEmpty) {
+                                _searchEmployeesInGetData(
+                                  newFirstNameControllerForSearchInGetData.text,
+                                );
+                              } else if (newLastNameControllerForSearchInPostData
+                                  .text.isNotEmpty) {
+                                _searchEmployeesInGetData(
+                                  newLastNameControllerForSearchInPostData.text,
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                        translation.thereIsNoSuchEmployee[
+                                            selectedLanguageIndex]),
+                                  ),
+                                );
+                                setState(() {
+                                  filteredEmployeeList = widget.employeeList!;
+                                });
+                              }
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              translation.searchButton[selectedLanguageIndex],
+                              style: TextStyle(color: Colors.green),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+      drawer: Drawer(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.info_outline),
+                title: Text(translation.profile[selectedLanguageIndex]),
+                onTap: () async {
+                  final user = await apiService
+                      .getUserInfo(await tokenService.getAccessToken());
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfile(
+                        userProf: user,
+                        selectedLanguageIndex: selectedLanguageIndex,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-            SizedBox(
-              width: 8.0,
+            const SizedBox(
+              height: 16.0,
             ),
-            IconButton(
-              color: Colors.white,
-              icon: Icon(Icons.search),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text(translation.searchBar[selectedLanguageIndex]),
-                      content: Form(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextFormField(
-                              controller:
-                                  newFirstNameControllerForSearchInGetData,
-                              decoration: InputDecoration(
-                                labelText: translation
-                                    .firstName[selectedLanguageIndex],
-                                border: const OutlineInputBorder(),
-                                suffixIcon: _isLoading
-                                    ? CircularProgressIndicator()
-                                    : IconButton(
-                                        icon: Icon(Icons.clear),
-                                        onPressed: () {
-                                          newFirstNameControllerForSearchInGetData
-                                              .clear();
-                                        },
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(height: 8.0),
-                            TextFormField(
-                              controller:
-                                  newLastNameControllerForSearchInPostData,
-                              decoration: InputDecoration(
-                                labelText:
-                                    translation.lastName[selectedLanguageIndex],
-                                border: const OutlineInputBorder(),
-                                suffixIcon: _isLoading
-                                    ? CircularProgressIndicator()
-                                    : IconButton(
-                                        icon: Icon(Icons.clear),
-                                        onPressed: () {
-                                          newLastNameControllerForSearchInPostData
-                                              .clear;
-                                        },
-                                      ),
-                              ),
-                            ),
-                          ],
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedAnimatedProfileIndex = !selectedAnimatedProfileIndex;
+                });
+              },
+              child: AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                height: selectedAnimatedProfileIndex ? 120 : 65,
+                child: Column(
+                  children: [
+                    Card(
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.translate,
+                        ),
+                        title: Text(
+                          translation.changeLanguage[selectedLanguageIndex],
+                          style: TextStyle(
+                            fontSize: 16.0,
+                          ),
                         ),
                       ),
-                      actions: [
-                        Row(
+                    ),
+                    if (selectedAnimatedProfileIndex)
+                      Expanded(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             ElevatedButton(
                               onPressed: () {
-                                newFirstNameControllerForSearchInGetData
-                                    .clear();
-                                newLastNameControllerForSearchInPostData
-                                    .clear();
                                 setState(() {
-                                  filteredEmployeeList = widget.employeeList!;
+                                  selectedLanguageIndex = 1;
                                 });
-                                Navigator.pop(context);
+                                print('Turkmen is selected');
                               },
                               child: Text(
-                                translation.cancelButton[selectedLanguageIndex],
-                                style: TextStyle(color: Colors.red),
+                                translation.turkmen[selectedLanguageIndex],
+                                style: TextStyle(),
                               ),
                             ),
                             ElevatedButton(
                               onPressed: () {
-                                newFirstNameControllerForSearchInGetData
-                                    .clear();
-                                newLastNameControllerForSearchInPostData
-                                    .clear();
                                 setState(() {
-                                  filteredEmployeeList = widget.employeeList!;
+                                  selectedLanguageIndex = 0;
                                 });
-                                Navigator.pop(context);
+                                print('English is selected');
                               },
                               child: Text(
-                                translation.clearButton[selectedLanguageIndex],
-                                style: TextStyle(color: Colors.blue),
-                              ),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                if (newFirstNameControllerForSearchInGetData
-                                    .text.isNotEmpty) {
-                                  _searchEmployeesInGetData(
-                                    newFirstNameControllerForSearchInGetData
-                                        .text,
-                                  );
-                                } else if (newLastNameControllerForSearchInPostData
-                                    .text.isNotEmpty) {
-                                  _searchEmployeesInGetData(
-                                    newLastNameControllerForSearchInPostData
-                                        .text,
-                                  );
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          translation.thereIsNoSuchEmployee[
-                                              selectedLanguageIndex]),
-                                    ),
-                                  );
-                                  setState(() {
-                                    filteredEmployeeList = widget.employeeList!;
-                                  });
-                                }
-                                Navigator.pop(context);
-                              },
-                              child: Text(
-                                translation.searchButton[selectedLanguageIndex],
-                                style: TextStyle(color: Colors.green),
+                                translation.english[selectedLanguageIndex],
+                                style: TextStyle(),
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-          ],
-        ),
-        drawer: Drawer(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.info_outline),
-                  title: Text(translation.profile[selectedLanguageIndex]),
-                  onTap: () async {
-                    final user = await apiService
-                        .getUserInfo(await tokenService.getAccessToken());
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => UserProfile(
-                          userProf: user,
-                          selectedLanguageIndex: selectedLanguageIndex,
-                        ),
                       ),
-                    );
-                  },
+                  ],
                 ),
               ),
-              const SizedBox(
-                height: 16.0,
-              ),
-              GestureDetector(
+            ),
+            const SizedBox(
+              height: 16.0,
+            ),
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.logout),
+                title: Text(translation.logoutButton[selectedLanguageIndex]),
                 onTap: () {
-                  setState(() {
-                    selectedAnimatedProfileIndex =
-                        !selectedAnimatedProfileIndex;
-                  });
-                },
-                child: AnimatedContainer(
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  height: selectedAnimatedProfileIndex ? 120 : 65,
-                  child: Column(
-                    children: [
-                      Card(
-                        child: ListTile(
-                          leading: Icon(
-                            Icons.translate,
-                          ),
-                          title: Text(
-                            translation.changeLanguage[selectedLanguageIndex],
-                            style: TextStyle(
-                              fontSize: 16.0,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (selectedAnimatedProfileIndex)
-                        Expanded(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text(translation.hint[selectedLanguageIndex]),
+                        content:
+                            Text(translation.message[selectedLanguageIndex]),
+                        actions: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              ElevatedButton(
+                              TextButton(
                                 onPressed: () {
-                                  setState(() {
-                                    selectedLanguageIndex = 1;
-                                  });
-                                  print('Turkmen is selected');
+                                  Navigator.pop(context);
                                 },
                                 child: Text(
-                                  translation.turkmen[selectedLanguageIndex],
-                                  style: TextStyle(),
+                                  translation.noButton[selectedLanguageIndex],
+                                  style: TextStyle(color: Colors.red),
                                 ),
                               ),
-                              ElevatedButton(
+                              TextButton(
                                 onPressed: () {
-                                  setState(() {
-                                    selectedLanguageIndex = 0;
-                                  });
-                                  print('English is selected');
+                                  tokenService.clearTokens();
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => LoginPage(),
+                                    ),
+                                  );
                                 },
                                 child: Text(
-                                  translation.english[selectedLanguageIndex],
-                                  style: TextStyle(),
+                                  translation.okButton[selectedLanguageIndex],
+                                  style: TextStyle(color: Colors.green),
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                    ],
-                  ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: filteredEmployeeList.isEmpty
+          ? Center(
+              child: Text(
+                translation.thereIsNoSuchEmployee[selectedLanguageIndex],
+                style: TextStyle(
+                  color: Colors.deepOrangeAccent,
+                  fontSize: 24.0,
                 ),
               ),
-              const SizedBox(
-                height: 16.0,
-              ),
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.logout),
-                  title: Text(translation.logoutButton[selectedLanguageIndex]),
+            )
+          : ListView.builder(
+              controller: scrollController,
+              itemCount: filteredEmployeeList.length + (_hasMore ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == filteredEmployeeList.length) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                return GestureDetector(
                   onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text(translation.hint[selectedLanguageIndex]),
-                          content:
-                              Text(translation.message[selectedLanguageIndex]),
-                          actions: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    setState(() {
+                      selectedAnimatedContainerIndex =
+                          selectedAnimatedContainerIndex == index
+                              ? null
+                              : index;
+                    });
+                  },
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    padding: EdgeInsets.all(10),
+                    margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.blueGrey[100],
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withValues(),
+                          blurRadius: 5,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    height: selectedAnimatedContainerIndex == index ? 175 : 115,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: Container(
+                            height: 75.0,
+                            width: 75.0,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              image: DecorationImage(
+                                image:
+                                    filteredEmployeeList[index].avatar != null
+                                        ? NetworkImage(
+                                            '${filteredEmployeeList[index].avatar}',
+                                          )
+                                        : AssetImage('assets/images.jpg')
+                                            as ImageProvider,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            '${filteredEmployeeList[index].firstName} ${filteredEmployeeList[index].lastName}',
+                          ),
+                          subtitle: Text(
+                            filteredEmployeeList[index].position,
+                          ),
+                          trailing: SizedBox(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                TextButton(
+                                IconButton(
                                   onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: Text(
-                                    translation.noButton[selectedLanguageIndex],
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    tokenService.clearTokens();
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => LoginPage(),
+                                        builder: (context) => UpdateEmployee(
+                                          editEmployee:
+                                              filteredEmployeeList[index],
+                                          selectedLanguageIndex:
+                                              selectedLanguageIndex,
+                                        ),
                                       ),
                                     );
                                   },
-                                  child: Text(
-                                    translation.okButton[selectedLanguageIndex],
-                                    style: TextStyle(color: Colors.green),
+                                  icon: Icon(
+                                    Icons.edit,
+                                    color: Colors.green[800],
                                   ),
                                 ),
-                              ],
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-        body: filteredEmployeeList.isEmpty
-            ? Center(
-                child: Text(
-                  translation.thereIsNoSuchEmployee[selectedLanguageIndex],
-                  style: TextStyle(
-                    color: Colors.deepOrangeAccent,
-                    fontSize: 24.0,
-                  ),
-                ),
-              )
-            : ListView.builder(
-                controller: scrollController,
-                itemCount: filteredEmployeeList.length + (_hasMore ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == filteredEmployeeList.length) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedAnimatedContainerIndex =
-                            selectedAnimatedContainerIndex == index
-                                ? null
-                                : index;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      padding: EdgeInsets.all(10),
-                      margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.blueGrey[100],
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withValues(),
-                            blurRadius: 5,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      height:
-                          selectedAnimatedContainerIndex == index ? 175 : 115,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ListTile(
-                            leading: Container(
-                              height: 75.0,
-                              width: 75.0,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                image: DecorationImage(
-                                  image:
-                                      filteredEmployeeList[index].avatar != null
-                                          ? NetworkImage(
-                                              '${filteredEmployeeList[index].avatar}',
-                                            )
-                                          : AssetImage('assets/images.jpg')
-                                              as ImageProvider,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            title: Text(
-                              '${filteredEmployeeList[index].firstName} ${filteredEmployeeList[index].lastName}',
-                            ),
-                            subtitle: Text(
-                              filteredEmployeeList[index].position,
-                            ),
-                            trailing: SizedBox(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    onPressed: () {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => UpdateEmployee(
-                                            editEmployee:
-                                                filteredEmployeeList[index], selectedLanguageIndex: selectedLanguageIndex,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    icon: Icon(
-                                      Icons.edit,
-                                      color: Colors.green[800],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8.0),
-                                  IconButton(
-                                    onPressed: () async {
+                                const SizedBox(width: 8.0),
+                                IconButton(
+                                  onPressed: () async {
+                                    try {
                                       await apiService.deleteData(
                                         filteredEmployeeList[index]
                                             .id
@@ -617,274 +612,287 @@ class _UserListState extends State<UserList> {
                                               refreshedEmployeeList;
                                         });
                                       }
-                                    },
-                                    icon: Icon(Icons.delete, color: Colors.red),
-                                  ),
-                                ],
-                              ),
+                                    } catch (error) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          backgroundColor: Colors.redAccent,
+                                          content: Text(
+                                            '${translation.cannotDeleteEmployee[
+                                                selectedLanguageIndex]} $error',
+                                            style: TextStyle(
+                                                color: Colors.white54),
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  icon: Icon(Icons.delete, color: Colors.red),
+                                ),
+                              ],
                             ),
                           ),
-                          if (selectedAnimatedContainerIndex == index)
-                            Expanded(
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  ElevatedButton(
-                                    style: ButtonStyle(
-                                      backgroundColor:
-                                          WidgetStatePropertyAll<Color>(
-                                        Colors.green,
-                                      ),
-                                    ),
-                                    onPressed: () async {
-                                      final employeeDoc =
-                                          await apiService.getEmployeeDocuments(
-                                              filteredEmployeeList[index].id,
-                                              await tokenService
-                                                  .getAccessToken());
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => EmployeeDoc(
-                                            id: filteredEmployeeList[index].id,
-                                            employeeDocuments: employeeDoc, selectedLanguageIndex: selectedLanguageIndex,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Text(
-                                      translation
-                                          .documents[selectedLanguageIndex],
-                                      style: TextStyle(color: Colors.white),
+                        ),
+                        if (selectedAnimatedContainerIndex == index)
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                ElevatedButton(
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        WidgetStatePropertyAll<Color>(
+                                      Colors.green,
                                     ),
                                   ),
-                                  ElevatedButton(
-                                    style: ButtonStyle(
-                                      backgroundColor:
-                                          WidgetStatePropertyAll<Color>(
-                                        Colors.green,
-                                      ),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => EmployeeInfo(
-                                            employeeInformation:
-                                                filteredEmployeeList[index],
-                                            selectedLanguageIndex:
-                                                selectedLanguageIndex,
-                                          ),
+                                  onPressed: () async {
+                                    final employeeDoc =
+                                        await apiService.getEmployeeDocuments(
+                                            filteredEmployeeList[index].id,
+                                            await tokenService
+                                                .getAccessToken());
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => EmployeeDoc(
+                                          id: filteredEmployeeList[index].id,
+                                          employeeDocuments: employeeDoc,
+                                          selectedLanguageIndex:
+                                              selectedLanguageIndex,
                                         ),
-                                      );
-                                    },
-                                    child: Text(
-                                      translation
-                                          .information[selectedLanguageIndex],
-                                      style: TextStyle(color: Colors.white),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    translation
+                                        .documents[selectedLanguageIndex],
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  style: ButtonStyle(
+                                    backgroundColor:
+                                        WidgetStatePropertyAll<Color>(
+                                      Colors.green,
                                     ),
                                   ),
-                                ],
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => EmployeeInfo(
+                                          employeeInformation:
+                                              filteredEmployeeList[index],
+                                          selectedLanguageIndex:
+                                              selectedLanguageIndex,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    translation
+                                        .information[selectedLanguageIndex],
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (BuildContext context) => NewEmployee(
+                    selectedLanguageIndex: selectedLanguageIndex,
+                  ),
+                ),
+              );
+            },
+            child: const Icon(Icons.add),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (BuildContext context) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      child: Center(
+                        child: ListView(
+                          children: [
+                            Text(translation.searchBar[selectedLanguageIndex]),
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: newFirstNameController,
+                              decoration: InputDecoration(
+                                labelText: translation
+                                    .firstName[selectedLanguageIndex],
+                                border: const OutlineInputBorder(),
+                                suffixIcon: _isLoading
+                                    ? CircularProgressIndicator()
+                                    : IconButton(
+                                        icon: Icon(Icons.clear),
+                                        onPressed: () {
+                                          newFirstNameController.clear();
+                                        },
+                                      ),
                               ),
                             ),
-                        ],
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: newLastNameController,
+                              decoration: InputDecoration(
+                                labelText:
+                                    translation.lastName[selectedLanguageIndex],
+                                border: const OutlineInputBorder(),
+                                suffixIcon: _isLoading
+                                    ? CircularProgressIndicator()
+                                    : IconButton(
+                                        icon: Icon(Icons.clear),
+                                        onPressed: () {
+                                          newLastNameController.clear;
+                                        },
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: newPositionController,
+                              decoration: InputDecoration(
+                                labelText:
+                                    translation.position[selectedLanguageIndex],
+                                border: const OutlineInputBorder(),
+                                suffixIcon: _isLoading
+                                    ? CircularProgressIndicator()
+                                    : IconButton(
+                                        icon: Icon(Icons.clear),
+                                        onPressed: () {
+                                          newPositionController.clear();
+                                        },
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: newPhoneController,
+                              decoration: InputDecoration(
+                                labelText: translation
+                                    .phoneNumber[selectedLanguageIndex],
+                                border: const OutlineInputBorder(),
+                                suffixIcon: _isLoading
+                                    ? CircularProgressIndicator()
+                                    : IconButton(
+                                        icon: Icon(Icons.clear),
+                                        onPressed: () {
+                                          newPhoneController.clear();
+                                        },
+                                      ),
+                              ),
+                              keyboardType: TextInputType.emailAddress,
+                            ),
+                            const SizedBox(height: 8.0),
+                            TextFormField(
+                              controller: newBirthdayMonthController,
+                              decoration: InputDecoration(
+                                labelText: translation
+                                    .birthdayMonth[selectedLanguageIndex],
+                                border: const OutlineInputBorder(),
+                                suffixIcon: _isLoading
+                                    ? CircularProgressIndicator()
+                                    : IconButton(
+                                        icon: Icon(Icons.clear),
+                                        onPressed: () {
+                                          newBirthdayMonthController.clear();
+                                        },
+                                      ),
+                              ),
+                              keyboardType: TextInputType.phone,
+                            ),
+                            const SizedBox(height: 8.0),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    clear();
+                                    Navigator.pop(context);
+                                    setState(() {
+                                      filteredEmployeeList =
+                                          widget.employeeList!;
+                                    });
+                                  },
+                                  child: Text(
+                                    translation
+                                        .cancelButton[selectedLanguageIndex],
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 24.0,
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    clear();
+                                    Navigator.pop(context);
+                                    setState(() {
+                                      filteredEmployeeList =
+                                          widget.employeeList!;
+                                    });
+                                  },
+                                  child: Text(
+                                    translation
+                                        .clearButton[selectedLanguageIndex],
+                                    style: TextStyle(
+                                      color: Colors.blue,
+                                      fontSize: 24.0,
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    final Map<String, String?> searchBar = {
+                                      'first_name': newFirstNameController.text,
+                                      'last_name': newLastNameController.text,
+                                      'position': newPositionController.text,
+                                      'phone_number': newPhoneController.text,
+                                      'birth_date_month':
+                                          newBirthdayMonthController.text,
+                                    };
+                                    _searchEmployeesInPostData(searchBar);
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text(
+                                    translation
+                                        .searchButton[selectedLanguageIndex],
+                                    style: TextStyle(
+                                      color: Colors.green,
+                                      fontSize: 24.0,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
                 },
-              ),
-        floatingActionButton: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) => NewEmployee(selectedLanguageIndex: selectedLanguageIndex,),
-                  ),
-                );
-              },
-              child: const Icon(Icons.add),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Form(
-                        child: Center(
-                          child: ListView(
-                            children: [
-                              Text(
-                                  translation.searchBar[selectedLanguageIndex]),
-                              const SizedBox(height: 8.0),
-                              TextFormField(
-                                controller: newFirstNameController,
-                                decoration: InputDecoration(
-                                  labelText: translation
-                                      .firstName[selectedLanguageIndex],
-                                  border: const OutlineInputBorder(),
-                                  suffixIcon: _isLoading
-                                      ? CircularProgressIndicator()
-                                      : IconButton(
-                                          icon: Icon(Icons.clear),
-                                          onPressed: () {
-                                            newFirstNameController.clear();
-                                          },
-                                        ),
-                                ),
-                              ),
-                              const SizedBox(height: 8.0),
-                              TextFormField(
-                                controller: newLastNameController,
-                                decoration: InputDecoration(
-                                  labelText: translation
-                                      .lastName[selectedLanguageIndex],
-                                  border: const OutlineInputBorder(),
-                                  suffixIcon: _isLoading
-                                      ? CircularProgressIndicator()
-                                      : IconButton(
-                                          icon: Icon(Icons.clear),
-                                          onPressed: () {
-                                            newLastNameController.clear;
-                                          },
-                                        ),
-                                ),
-                              ),
-                              const SizedBox(height: 8.0),
-                              TextFormField(
-                                controller: newPositionController,
-                                decoration: InputDecoration(
-                                  labelText: translation
-                                      .position[selectedLanguageIndex],
-                                  border: const OutlineInputBorder(),
-                                  suffixIcon: _isLoading
-                                      ? CircularProgressIndicator()
-                                      : IconButton(
-                                          icon: Icon(Icons.clear),
-                                          onPressed: () {
-                                            newPositionController.clear();
-                                          },
-                                        ),
-                                ),
-                              ),
-                              const SizedBox(height: 8.0),
-                              TextFormField(
-                                controller: newPhoneController,
-                                decoration: InputDecoration(
-                                  labelText: translation
-                                      .phoneNumber[selectedLanguageIndex],
-                                  border: const OutlineInputBorder(),
-                                  suffixIcon: _isLoading
-                                      ? CircularProgressIndicator()
-                                      : IconButton(
-                                          icon: Icon(Icons.clear),
-                                          onPressed: () {
-                                            newPhoneController.clear();
-                                          },
-                                        ),
-                                ),
-                                keyboardType: TextInputType.emailAddress,
-                              ),
-                              const SizedBox(height: 8.0),
-                              TextFormField(
-                                controller: newBirthdayMonthController,
-                                decoration: InputDecoration(
-                                  labelText: translation
-                                      .birthdayMonth[selectedLanguageIndex],
-                                  border: const OutlineInputBorder(),
-                                  suffixIcon: _isLoading
-                                      ? CircularProgressIndicator()
-                                      : IconButton(
-                                          icon: Icon(Icons.clear),
-                                          onPressed: () {
-                                            newBirthdayMonthController.clear();
-                                          },
-                                        ),
-                                ),
-                                keyboardType: TextInputType.phone,
-                              ),
-                              const SizedBox(height: 8.0),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      clear();
-                                      Navigator.pop(context);
-                                      setState(() {
-                                        filteredEmployeeList =
-                                            widget.employeeList!;
-                                      });
-                                    },
-                                    child: Text(
-                                      translation
-                                          .cancelButton[selectedLanguageIndex],
-                                      style: TextStyle(
-                                        color: Colors.red,
-                                        fontSize: 24.0,
-                                      ),
-                                    ),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      clear();
-                                      Navigator.pop(context);
-                                      setState(() {
-                                        filteredEmployeeList =
-                                            widget.employeeList!;
-                                      });
-                                    },
-                                    child: Text(
-                                      translation
-                                          .clearButton[selectedLanguageIndex],
-                                      style: TextStyle(
-                                        color: Colors.blue,
-                                        fontSize: 24.0,
-                                      ),
-                                    ),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      final Map<String, String?> searchBar = {
-                                        'first_name':
-                                            newFirstNameController.text,
-                                        'last_name': newLastNameController.text,
-                                        'position': newPositionController.text,
-                                        'phone_number': newPhoneController.text,
-                                        'birth_date_month':
-                                            newBirthdayMonthController.text,
-                                      };
-                                      _searchEmployeesInPostData(searchBar);
-                                      Navigator.pop(context);
-                                    },
-                                    child: Text(
-                                      translation
-                                          .searchButton[selectedLanguageIndex],
-                                      style: TextStyle(
-                                        color: Colors.green,
-                                        fontSize: 24.0,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-              child: const Icon(Icons.search),
-            ),
-          ],
-        ),
+              );
+            },
+            child: const Icon(Icons.search),
+          ),
+        ],
       ),
     );
   }

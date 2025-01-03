@@ -11,7 +11,10 @@ import 'package:new_project/service/savedData.dart';
 class EditDocument extends StatefulWidget {
   final int selectedLanguageIndex;
   final Document editDocument;
-  const EditDocument({super.key, required this.editDocument, required this.selectedLanguageIndex});
+  const EditDocument(
+      {super.key,
+      required this.editDocument,
+      required this.selectedLanguageIndex});
 
   @override
   State<EditDocument> createState() => _EditDocumentState();
@@ -31,9 +34,9 @@ class _EditDocumentState extends State<EditDocument> {
   void getEmployeesAgain() async {
     final employees =
         await apiService.getData(await tokenService.getAccessToken(), 0, null);
-        setState(() {
-          allEmployees = employees;
-        });
+    setState(() {
+      allEmployees = employees;
+    });
   }
 
   @override
@@ -43,6 +46,16 @@ class _EditDocumentState extends State<EditDocument> {
 
   File? avatarFile;
   Employee? selectedEmployee;
+
+  List<String> documentTypes = [
+    'Zagran',
+    'Passport',
+    'Maglumat',
+    'Diplom',
+    'Hasiyetnama'
+  ];
+
+  String? selectedDocumentType;
 
   @override
   Widget build(BuildContext context) {
@@ -71,36 +84,53 @@ class _EditDocumentState extends State<EditDocument> {
                 text: widget.editDocument.name,
               ),
               decoration: InputDecoration(border: OutlineInputBorder()),
-            ),
-            SizedBox(
-              height: 16.0,
-            ),
-            TextFormField(
-              controller: documentType = TextEditingController(
-                text: widget.editDocument.type,
-              ),
-              decoration: InputDecoration(border: OutlineInputBorder()),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return translation.enterDocumentName[widget.selectedLanguageIndex];
+                }
+                return null;
+              },
             ),
             SizedBox(
               height: 16.0,
             ),
             DropdownButtonFormField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
-                items: allEmployees?.map((employee) {
+              hint: Text(widget.editDocument.type),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+              ),
+                items: documentTypes.map((doc) {
                   return DropdownMenuItem(
-                    value: employee,
-                    child: Text(
-                      '${employee.firstName} ${employee.lastName}',
-                    ),
+                    value: doc,
+                    child: Text(doc),
                   );
                 }).toList(),
-                onChanged: (employee){
-                    selectedEmployee = employee;
+                onChanged: (doc){
+                  selectedDocumentType = doc;
                 },
-                value: selectedEmployee,
+                value: selectedDocumentType,
                 ),
+            SizedBox(
+              height: 16.0,
+            ),
+            DropdownButtonFormField(
+              hint: Text(translation.employee[widget.selectedLanguageIndex]),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+              ),
+              items: allEmployees?.map((employee) {
+                return DropdownMenuItem(
+                  value: employee,
+                  child: Text(
+                    '${employee.firstName} ${employee.lastName}',
+                  ),
+                );
+              }).toList(),
+              onChanged: (employee) {
+                selectedEmployee = employee;
+              },
+              value: selectedEmployee,
+            ),
             SizedBox(
               height: 16.0,
             ),
@@ -110,14 +140,16 @@ class _EditDocumentState extends State<EditDocument> {
                 Document edittedDocument = Document(
                     employee: int.tryParse(employeeID.text),
                     name: documentName.text,
-                    type: documentType.text, 
+                    type: documentType.text,
                     id: widget.editDocument.id);
-                    print('we are above of the query');    
+                print('we are above of the query');
                 FormData query = FormData.fromMap({
                   'employee': selectedEmployee?.id,
                   'name': edittedDocument.name,
-                  'type': edittedDocument.type,
-                  'file_path':avatarFile != null ? [await MultipartFile.fromFile(avatarFile!.path)]: null,
+                  'type': selectedDocumentType,
+                  'file_path': avatarFile != null
+                      ? [await MultipartFile.fromFile(avatarFile!.path)]
+                      : null,
                 });
                 print('we are above of the apiService.updateDocument');
                 await apiService.updateDocument(
@@ -129,7 +161,10 @@ class _EditDocumentState extends State<EditDocument> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AllDocuments(documents: newDocuments, selectedLanguageIndex: widget.selectedLanguageIndex,),
+                    builder: (context) => AllDocuments(
+                      documents: newDocuments,
+                      selectedLanguageIndex: widget.selectedLanguageIndex,
+                    ),
                   ),
                 );
               },
