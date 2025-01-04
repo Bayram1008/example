@@ -65,7 +65,7 @@ class EmployeeInfo extends StatelessWidget {
             child: ListTile(
               leading: const Icon(Icons.phone),
               title: Text(translation.phoneNumber[selectedLanguageIndex]),
-              subtitle: Text(employeeInformation.phoneNumber),
+              subtitle: Text('+993 ${employeeInformation.phoneNumber}'),
             ),
           ),
           const SizedBox(height: 16.0),

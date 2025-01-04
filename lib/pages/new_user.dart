@@ -204,7 +204,7 @@ class _NewEmployeeState extends State<NewEmployee> {
               ),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
-                if (value == null || value.isEmpty || value.contains('@')) {
+                if (value == null || value.isEmpty || !value.contains('@')) {
                   return translation
                       .enterEmailAddress[widget.selectedLanguageIndex];
                 }
@@ -241,7 +241,7 @@ class _NewEmployeeState extends State<NewEmployee> {
                 CardNumberInputFormatter(),
               ],
               validator: (value) {
-                if (value == null || value.isEmpty || value.length != 8) {
+                if (value == null || value.isEmpty || value.length != 9  ) {
                   return translation
                       .enterPhoneNumber[widget.selectedLanguageIndex];
                 }

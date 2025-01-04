@@ -43,8 +43,8 @@ class _NewDocumentState extends State<NewDocument> {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(1960),
-      lastDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
     );
     if (pickedDate != null) {
       controller.text = "${pickedDate.toLocal()}".split(' ')[0];
@@ -188,7 +188,7 @@ class _NewDocumentState extends State<NewDocument> {
                       Document newDocument = Document(
                         employee: widget.id,
                         name: documentName.text,
-                        type: documentType.text,
+                        type: selectedDocumentType!,
                         expiredDate: DateTime.parse(documentExpiredType.text),
                       );
                       FormData query = FormData.fromMap({
