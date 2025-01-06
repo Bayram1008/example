@@ -44,10 +44,9 @@ class _AllDocumentsState extends State<AllDocuments> {
 
     try {
       dio.options.headers['Authorization'] = 'Bearer $accessToken';
-      //print('we are under the dio.options.headers');
+
       final status = await Permission.manageExternalStorage.request();
-      //print('we are under of the permission.storage.request');
-      //print('${status.isGranted}');
+      
       print('$status');
       if (status.isGranted) {
         print('we are in the status.isGranted');

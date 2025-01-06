@@ -41,7 +41,7 @@ Connect your emulator or physical device, then use this command to run the app:
 ```bash
 flutter run
 ```
-This project works for the devices which are version is min Android 5 or min Android version is Lollipop (API 21), you can get more information from https://docs.flutter.dev/release/breaking-changes/android-kitkat-deprecation . But I recommend to use the devices which Android version is min Lollipop (API 30) or Android 11, because for the below versions when we download the document it gives error, because of https://pub.dev/packages/permission_handler 
+minSdkVersion is in the path ../android/app/src/build.gradle 
 ## Project Structure
 
     lib/
