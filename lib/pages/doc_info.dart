@@ -32,7 +32,7 @@ class DocInfo extends StatelessWidget {
             child: ListTile(
               leading: Icon(
                 Icons.person,
-                color: Colors.white,
+                color: Colors.black,
                 size: 20.0,
               ),
               title: Text(employeeName),
@@ -45,7 +45,7 @@ class DocInfo extends StatelessWidget {
             child: ListTile(
               leading: Icon(
                 Icons.info,
-                color: Colors.white,
+                color: Colors.black,
                 size: 20.0,
               ),
               title: Text(documentInfo.type),
@@ -58,7 +58,7 @@ class DocInfo extends StatelessWidget {
             child: ListTile(
               leading: Icon(
                 Icons.folder,
-                color: Colors.white,
+                color: Colors.black,
                 size: 20.0,
               ),
               title: Text(documentInfo.name),

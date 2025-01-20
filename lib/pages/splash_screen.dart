@@ -18,10 +18,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
   
     Future<void> _checkAccessToken() async {
+    Duration(seconds: 3);
     String? accessToken = await tokenService.getAccessToken();
 
     if (accessToken != null) {
-      final employees = await apiService.getData(accessToken, 0, 12);
+      final employees = await apiService.getData(accessToken, 1, 12);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => UserList(employeeList: employees,),),

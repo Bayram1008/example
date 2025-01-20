@@ -77,11 +77,11 @@ class _NewDocumentState extends State<NewDocument> {
   String? selectedDocumentType;
 
   List<String> documentTypes = [
-    'Zagran',
-    'Passport',
-    'Maglumat',
-    'Diplom',
-    'Hasiyetnama'
+    'zagran',
+    'pasport',
+    'maglumat',
+    'diplom',
+    'hasiyetnama'
   ];
 
   @override
@@ -189,15 +189,15 @@ class _NewDocumentState extends State<NewDocument> {
                         employee: widget.id,
                         name: documentName.text,
                         type: selectedDocumentType!,
-                        expiredDate: DateTime.parse(documentExpiredType.text),
+                        expiredDate: DateFormat('dd-MM-yyyy').format(DateTime.parse(documentExpiredType.text)),
                       );
+                      print('the employee_id is : ${widget.id}');
                       FormData query = FormData.fromMap({
-                        'employee': newDocument.employee,
+                        'employee_id': newDocument.employee,
                         'name': newDocument.name,
                         'type': newDocument.type,
-                        'expiry_date': DateFormat('yyyy-MM-dd')
-                            .format(newDocument.expiredDate!),
-                        'file_path': [
+                        'expiry_date': newDocument.expiredDate,
+                        'file': [
                           await MultipartFile.fromFile(avatarFile!.path),
                         ],
                       });

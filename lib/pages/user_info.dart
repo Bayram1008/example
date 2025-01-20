@@ -7,8 +7,6 @@ class EmployeeInfo extends StatelessWidget {
   final int selectedLanguageIndex;
   final Employee employeeInformation;
   EmployeeInfo({super.key, required this.employeeInformation, required this.selectedLanguageIndex});
-
-  late final DateTime? timeData = employeeInformation.resignDate;
   Translation translation = Translation();
   @override
   Widget build(BuildContext context) {
@@ -65,7 +63,7 @@ class EmployeeInfo extends StatelessWidget {
             child: ListTile(
               leading: const Icon(Icons.phone),
               title: Text(translation.phoneNumber[selectedLanguageIndex]),
-              subtitle: Text('+993 ${employeeInformation.phoneNumber}'),
+              subtitle: Text(' ${employeeInformation.phoneNumber}'),
             ),
           ),
           const SizedBox(height: 16.0),
@@ -74,7 +72,7 @@ class EmployeeInfo extends StatelessWidget {
               leading: const Icon(Icons.date_range),
               title: Text(translation.birthDay[selectedLanguageIndex]),
               subtitle: Text(
-                DateFormat('dd/MM/yyyy').format(employeeInformation.birthDate),
+                employeeInformation.birthDate,
               ),
             ),
           ),
@@ -84,9 +82,7 @@ class EmployeeInfo extends StatelessWidget {
               leading: const Icon(Icons.date_range),
               title: Text(translation.resignedDate[selectedLanguageIndex]),
               subtitle: Text(
-                timeData == null
-                    ? translation.thereIsNoResignedDate[selectedLanguageIndex]
-                    : DateFormat('dd/MM/yyyy').format(timeData!),
+                employeeInformation.resignDate ?? translation.thereIsNoResignedDate[selectedLanguageIndex],
               ),
             ),
           ),
@@ -96,7 +92,7 @@ class EmployeeInfo extends StatelessWidget {
               leading: const Icon(Icons.date_range),
               title: Text(translation.hiredDate[selectedLanguageIndex]),
               subtitle: Text(
-                DateFormat('dd/MM/yyyy').format(employeeInformation.hireDate),
+                employeeInformation.hireDate,
               ),
             ),
           ),

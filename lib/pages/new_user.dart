@@ -336,59 +336,60 @@ class _NewEmployeeState extends State<NewEmployee> {
                 ),
                 TextButton(
                   onPressed: () async {
-                    if (formKey.currentState!.validate()) {
-                      if (avatarFile == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(translation
-                                .chooseImage[widget.selectedLanguageIndex]),
-                          ),
-                        );
-                        return print('This is the avatarFile:${avatarFile}');
-                      }
-                      print('This is the avatarFile:${avatarFile!.path}');
+                    // if (formKey.currentState!.validate()) {
+                    //   if (avatarFile == null) {
+                    //     ScaffoldMessenger.of(context).showSnackBar(
+                    //       SnackBar(
+                    //         content: Text(translation
+                    //             .chooseImage[widget.selectedLanguageIndex]),
+                    //       ),
+                    //     );
+                    //     return print('This is the avatarFile:${avatarFile}');
+                    //   }
+                      List<String> phoneNumberList = newPhoneController.text.split('');
+                      phoneNumberList.removeAt(2);
+                      String newPhoneNumber = '+993${phoneNumberList[0]}${phoneNumberList[1]}${phoneNumberList[2]}${phoneNumberList[3]}${phoneNumberList[4]}${phoneNumberList[5]}${phoneNumberList[6]}${phoneNumberList[7]}';
+                      print(newPhoneNumber);
+                      DateTime birthDayDateTime = DateTime.parse(newBirthdayController.text);
+                      DateTime hiredDayDateTime = DateTime.parse(newHiredDayController.text);
+                      DateTime? resignDayDateTime = newResignedDayController.text != '' ? DateTime.parse(newResignedDayController.text) : null;
+                      //print('This is the avatarFile:${avatarFile!.path}');
+                     //var avatar = await MultipartFile.fromFile(avatarFile!.path);
                       Employee newUser = Employee(
                         firstName: newFirstNameController.text,
                         lastName: newLastNameController.text,
-                        birthDate: DateTime.parse(newBirthdayController.text),
-                        phoneNumber: newPhoneController.text,
+                        birthDate: DateFormat('yyyy-MM-dd').format(birthDayDateTime),
+                        phoneNumber: newPhoneNumber,
                         position: newPositionController.text,
                         email: newEmailController.text,
-                        hireDate: DateTime.parse(newHiredDayController.text),
-                        documents: [],
+                        hireDate: DateFormat('yyyy-MM-dd').format(hiredDayDateTime),
+                        resignDate: resignDayDateTime != null ? DateFormat('yyyy-MM-dd').format(resignDayDateTime) : '',
                       );
                       print('hello world, we are under the newUser');
                       try {
                         FormData newData = FormData.fromMap({
-                          'avatar': [
-                            await MultipartFile.fromFile(avatarFile!.path),
-                          ],
+                          'avatar': [await MultipartFile.fromFile(avatarFile!.path)],
                           'first_name': newUser.firstName,
                           'last_name': newUser.lastName,
-                          'birth_date': DateFormat(
-                            'yyyy-MM-dd',
-                          ).format(newUser.birthDate),
+                          'birth_date': newUser.birthDate,
                           'phone_number': newUser.phoneNumber,
                           'position': newUser.position,
                           'email': newUser.email,
-                          'hire_date': DateFormat(
-                            'yyyy-MM-dd',
-                          ).format(newUser.hireDate),
+                          'hire_date': newUser.hireDate,
+                          'resign_date' : newUser.resignDate ?? '',
                         });
                         print(
                           'This is the path of avatarFile${avatarFile!.path}',
                         );
                         print('We are below of the newData');
-                        print(
-                          'We have to post the following data ${newData.fields}',
-                        );
+                        //print('We have to post the following data ${newUser.fields}');
                         await serviceInNewEmployee.postData(
                           newData,
                           await savedData.getAccessToken(),
                         );
 
                         final newEmployeeList = await serviceInNewEmployee
-                            .getData(await savedData.getAccessToken(), 0, 12);
+                            .getData(await savedData.getAccessToken(), 1, 12);
 
                         if (!mounted) return;
                         Navigator.pushReplacement(
@@ -399,22 +400,22 @@ class _NewEmployeeState extends State<NewEmployee> {
                           ),
                         );
                       } catch (e) {
-                        print('Error: ${e.toString()}');
+                        print('Error in new_user: ${e.toString()}');
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Error: ${e.toString()}')),
                         );
                       }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: Colors.redAccent,
-                          content: Text(
-                            translation.fillBoxesCorrectly[widget.selectedLanguageIndex],
-                            style: TextStyle(color: Colors.white54),
-                          ),
-                        ),
-                      );
-                    }
+                    // } else {
+                    //   ScaffoldMessenger.of(context).showSnackBar(
+                    //     SnackBar(
+                    //       backgroundColor: Colors.redAccent,
+                    //       content: Text(
+                    //         translation.fillBoxesCorrectly[widget.selectedLanguageIndex],
+                    //         style: TextStyle(color: Colors.white54),
+                    //       ),
+                    //     ),
+                    //   );
+                    // }
                   },
                   child: Text(
                     translation.addButton[widget.selectedLanguageIndex],
@@ -451,7 +452,7 @@ class CardNumberInputFormatter extends TextInputFormatter {
       buffer.write(text[i]);
       final nonZeroIndex = i + 1;
       if (nonZeroIndex == 2 && nonZeroIndex != text.length) {
-        buffer.write(' '); // Add double spaces.
+        buffer.write(' '); 
       }
     }
 

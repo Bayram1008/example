@@ -33,6 +33,21 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
   final Translation translation =Translation();
   File? avatarFile;
 
+  Future<void> selectDate(
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1960),
+      lastDate: DateTime.now(),
+    );
+    if (pickedDate != null) {
+      controller.text = "${pickedDate.toLocal()}".split(' ')[0];
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -98,59 +113,60 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
             TextFormField(
               controller:
                   editedBirthDayController = TextEditingController(
-                    text: DateFormat(
-                      'dd/MM/yyyy',
-                    ).format(widget.editEmployee.birthDate),
+                    text: widget.editEmployee.birthDate,
                   ),
               decoration: InputDecoration(border: OutlineInputBorder()),
+              onTap: () {
+                selectDate(context, editedBirthDayController);
+              },
             ),
             const SizedBox(height: 16.0),
             TextFormField(
               controller:
                   editedHiredDateController = TextEditingController(
-                    text: DateFormat(
-                      'dd/MM/yyyy',
-                    ).format(widget.editEmployee.hireDate),
-                  ),
+                    text: widget.editEmployee.hireDate),
               decoration: InputDecoration(border: OutlineInputBorder()),
+              onTap: () {
+                selectDate(context, editedHiredDateController);
+              },
             ),
             const SizedBox(height: 16.0),
             TextFormField(
               controller:
                   editedResignedDateController = TextEditingController(
-                    text: DateFormat(
-                      'dd/MM/yyyy',
-                    ).format(widget.editEmployee.resignDate ?? DateTime.now()),
+                    text: widget.editEmployee.resignDate,
                   ),
               decoration: InputDecoration(border: OutlineInputBorder()),
+              onTap: () {
+                selectDate(context, editedResignedDateController);
+              },
             ),
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () async {
+                DateTime? birthdayDateTime = editedBirthDayController.text.isEmpty ? null : DateTime.parse(editedBirthDayController.text);
+                DateTime? hiredDayDateTime = editedHiredDateController.text.isEmpty ? null : DateTime.parse(editedHiredDateController.text);
+                DateTime? resignedDayDateTime = editedResignedDateController.text.isEmpty ? null : DateTime.parse(editedResignedDateController.text);
                 Employee newUser = Employee(
-                  firstName: editedFirstNameController.text,
-                  lastName: editedLastNameController.text,
-                  birthDate: DateTime.now(),
-                  phoneNumber: editedPhoneNumberController.text,
-                  position: editedPositionController.text,
-                  email: editedEmailController.text,
-                  hireDate: DateTime.now(),
-                  resignDate: DateTime.now(), documents: [],
+                  firstName: editedFirstNameController.text.isNotEmpty ? editedFirstNameController.text : widget.editEmployee.firstName,
+                  lastName: editedLastNameController.text.isNotEmpty ? editedLastNameController.text : widget.editEmployee.lastName,
+                  birthDate: birthdayDateTime != null ? DateFormat('yyyy-MM-dd').format(birthdayDateTime) : '',
+                  phoneNumber: editedPhoneNumberController.text.isNotEmpty ? editedPhoneNumberController.text : widget.editEmployee.phoneNumber,
+                  position: editedPositionController.text.isNotEmpty ? editedPositionController.text : widget.editEmployee.position,
+                  email: editedEmailController.text.isNotEmpty ? editedEmailController.text : widget.editEmployee.email,
+                  hireDate: hiredDayDateTime != null ? DateFormat('yyyy-MM-dd').format(hiredDayDateTime) : '',
+                  resignDate:resignedDayDateTime != null ? DateFormat('yyyy-MM-dd').format(resignedDayDateTime) : '', 
                 );
                 try {
                   FormData newData = FormData.fromMap({
                     'avatar': [await MultipartFile.fromFile(avatarFile!.path)],
                     'first_name': newUser.firstName,
                     'last_name': newUser.lastName,
-                    'birth_date': DateFormat(
-                      'yyyy-MM-dd',
-                    ).format(newUser.birthDate),
+                    'birth_date': newUser.birthDate,
                     'phone_number': newUser.phoneNumber,
                     'position': newUser.position,
                     'email': newUser.email,
-                    'hire_date': DateFormat(
-                      'yyyy-MM-dd',
-                    ).format(newUser.hireDate),
+                    'hire_date': newUser.hireDate,
                   });
                   print('This is the path of avatarFile${avatarFile!.path}');
                   print('We are below of the newData');
@@ -162,7 +178,7 @@ class _UpdateEmployeeState extends State<UpdateEmployee> {
                   );
 
                   final newEmployeeList = await serviceInUpdateEmployee.getData(
-                    await savedDataInUpdateEmployee.getAccessToken(), 0, 12
+                    await savedDataInUpdateEmployee.getAccessToken(), 1, 12
                   );
 
                   if (!mounted) return;

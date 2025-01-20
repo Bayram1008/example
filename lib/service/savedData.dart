@@ -7,7 +7,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 class TokenService {
   final _storage = const FlutterSecureStorage();
 
-  Future<void> saveTokens(String accessToken, String refreshToken) async {
+  Future<void> saveTokens(String? accessToken, String? refreshToken) async {
     await _storage.write(key: SecureStorageKeys.access_token.name, value: accessToken);
     await _storage.write(key: SecureStorageKeys.refresh_token.name, value: refreshToken);
   }

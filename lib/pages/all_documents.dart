@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:new_project/model/user_model.dart';
@@ -25,16 +25,73 @@ class AllDocuments extends StatefulWidget {
 }
 
 class _AllDocumentsState extends State<AllDocuments> {
+  final ScrollController scrollController =ScrollController();
+  static DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
   final Translation translation = Translation();
   final ApiService apiService = ApiService();
   final Dio dio = Dio();
+  List<Document> filteredDocumentList = [];
+  int page = 2;
+  int limit = 12;
 
   bool isDownloading = false;
   double downloadProgress = 0.0;
   String? documentFormat;
+  bool _isLoading = false;
+  bool _hasMore = true;
 
-  Future<void> downloadDocument(
-      String? accessToken, String filename, String? filePath, String? documentFormat) async {
+  @override
+  void initState() {
+    super.initState();
+
+    setState(() {
+      filteredDocumentList = widget.documents!;
+    });
+
+    scrollController.addListener(() async {
+      if (scrollController.position.pixels ==
+              scrollController.position.maxScrollExtent &&
+          !_isLoading &&
+          _hasMore) {
+        getDocuments();
+      }
+    });
+  }
+   Future<void> getDocuments() async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final newDocuments = await apiService.getAllDocuments(
+        await tokenService.getAccessToken(),
+        page,
+        limit,
+      );
+      setState(() {
+        page = page + 1;
+        filteredDocumentList.addAll(newDocuments!);
+        if (newDocuments.length < limit) {
+          _hasMore = false;
+        }
+        print(page);
+      });
+    } catch (e) {
+      print('Error fetching items: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+
+  Future<void> downloadDocument(String? accessToken, String filename,
+      String? filePath, String? documentFormat) async {
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    int androidVersion = androidInfo.version.sdkInt;
     if (accessToken == null && filePath == null && filePath!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Invalid file or access token')),
@@ -45,47 +102,94 @@ class _AllDocumentsState extends State<AllDocuments> {
     try {
       dio.options.headers['Authorization'] = 'Bearer $accessToken';
 
-      final status = await Permission.manageExternalStorage.request();
-      
-      print('$status');
-      if (status.isGranted) {
-        print('we are in the status.isGranted');
-        final directory = Directory('/storage/emulated/0/Download');
-        if (!directory.existsSync()) {
-          directory.createSync(recursive: true);
-        }
+      if (androidVersion >= 30) {
+        final status = await Permission.manageExternalStorage.request();
 
-        final savedPath = "${directory.path}/$filename.$documentFormat";
-        setState(() => isDownloading = true);
+        print('$status');
+        if (status.isGranted) {
+          print('we are in the status.isGranted');
+          final directory = Directory('/storage/emulated/0/Download');
+          if (!directory.existsSync()) {
+            directory.createSync(recursive: true);
+          }
 
-        final response = await dio.download(filePath!, savedPath,
-            onReceiveProgress: (received, total) {
-          setState(() => downloadProgress = received / total);
-        });
+          final savedPath = "${directory.path}/$filename.$documentFormat";
+          setState(() => isDownloading = true);
 
-        setState(() {
-          isDownloading = false;
-          downloadProgress = 0.0;
-        });
+          final response = await dio.download(filePath!, savedPath,
+              onReceiveProgress: (received, total) {
+            setState(() => downloadProgress = received / total);
+          });
 
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              duration: const Duration(seconds: 2),
-              backgroundColor: Colors.green,
-              content: Text(
-                'Downloaded Successfully to $savedPath',
-                style: TextStyle(color: Colors.white, fontSize: 16.0),
+          setState(() {
+            isDownloading = false;
+            downloadProgress = 0.0;
+          });
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                duration: const Duration(seconds: 2),
+                backgroundColor: Colors.green,
+                content: Text(
+                  'Downloaded Successfully to $savedPath',
+                  style: TextStyle(color: Colors.white, fontSize: 16.0),
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            throw Exception('Failed to download document');
+          }
         } else {
-          throw Exception('Failed to download document');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Storage permission denied')),
+          );
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Storage permission denied')),
-        );
+        final status = await Permission.storage.request();
+
+        print('$status');
+        if (status.isGranted) {
+          print('we are in the status.isGranted');
+          // Directory? directory = await getExternalStorageDirectory();
+          final directory = Directory('/storage/emulated/0/Download');
+          if (!directory.existsSync()) {
+            directory.createSync(recursive: true);
+          }
+
+          final savedPath = "${directory.path}/$filename.$documentFormat";
+          print(savedPath);
+          setState(() => isDownloading = true);
+
+          final response = await dio.download(filePath!, savedPath,
+              onReceiveProgress: (received, total) {
+            setState(() => downloadProgress = received / total);
+          });
+
+          setState(() {
+            isDownloading = false;
+            downloadProgress = 0.0;
+          });
+
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                duration: const Duration(seconds: 2),
+                backgroundColor: Colors.green,
+                content: Text(
+                  'Downloaded Successfully to $savedPath',
+                  style: TextStyle(color: Colors.white, fontSize: 16.0),
+                ),
+              ),
+            );
+          } else {
+            throw Exception('Failed to download document');
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Storage permission denied')),
+          );
+        }
       }
     } catch (e) {
       print('Error during download: $e');
@@ -124,7 +228,7 @@ class _AllDocumentsState extends State<AllDocuments> {
                 onTap: () async {
                   final result = await OpenFile.open(filePath);
                   Navigator.pop(context);
-	if (result.type != ResultType.done) {
+                  if (result.type != ResultType.done) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Failed to open file')),
                     );
@@ -139,7 +243,7 @@ class _AllDocumentsState extends State<AllDocuments> {
     );
   }
 
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -179,14 +283,14 @@ class _AllDocumentsState extends State<AllDocuments> {
                         children: [
                           IconButton(
                             onPressed: () async {
-                              List<String> documentData = document.filePath!.split('.');
+                              List<String> documentData =
+                                  document.filePath!.split('.');
                               documentFormat = documentData.last;
                               downloadDocument(
-                                await tokenService.getAccessToken(),
-                                document.name,
-                                document.filePath,
-                                documentFormat
-                              );
+                                  await tokenService.getAccessToken(),
+                                  document.name,
+                                  document.filePath,
+                                  documentFormat);
                             },
                             icon: const Icon(
                               Icons.download,
@@ -236,7 +340,7 @@ class _AllDocumentsState extends State<AllDocuments> {
                           ),
                         ],
                       ),
-),
+                    ),
                   ),
                 );
               },

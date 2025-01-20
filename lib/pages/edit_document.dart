@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:new_project/model/user_model.dart';
 import 'package:new_project/pages/all_documents.dart';
 import 'package:new_project/pages/translation.dart';
@@ -33,7 +34,7 @@ class _EditDocumentState extends State<EditDocument> {
 
   void getEmployeesAgain() async {
     final employees =
-        await apiService.getData(await tokenService.getAccessToken(), 0, null);
+        await apiService.getData(await tokenService.getAccessToken(), 1, null);
     setState(() {
       allEmployees = employees;
     });
@@ -48,11 +49,11 @@ class _EditDocumentState extends State<EditDocument> {
   Employee? selectedEmployee;
 
   List<String> documentTypes = [
-    'Zagran',
-    'Passport',
-    'Maglumat',
-    'Diplom',
-    'Hasiyetnama'
+    'zagran',
+    'pasport',
+    'maglumat',
+    'diplom',
+    'hasiyetnama'
   ];
 
   String? selectedDocumentType;
@@ -138,26 +139,21 @@ class _EditDocumentState extends State<EditDocument> {
               onPressed: () async {
                 print('we are above of edittedDocument');
                 Document edittedDocument = Document(
-                    employee: int.tryParse(employeeID.text),
+                    expiredDate: DateFormat('yyyy-MM-dd').format(DateTime.now()),
                     name: documentName.text,
-                    type: documentType.text,
-                    id: widget.editDocument.id);
+                    type: selectedDocumentType!,
+                    id: widget.editDocument.id, 
+                    employee: selectedEmployee?.id);
                 print('we are above of the query');
-                FormData query = FormData.fromMap({
-                  'employee': selectedEmployee?.id,
-                  'name': edittedDocument.name,
-                  'type': selectedDocumentType,
-                  'file_path': avatarFile != null
-                      ? [await MultipartFile.fromFile(avatarFile!.path)]
-                      : null,
-                });
+                print('The selected employee is: $selectedEmployee');
+                print('employee_id : ${selectedEmployee?.id}');
+                print('Document id is: ${widget.editDocument.id}');
                 print('we are above of the apiService.updateDocument');
                 await apiService.updateDocument(
                     await tokenService.getAccessToken(),
-                    query,
-                    widget.editDocument.id);
+                    edittedDocument);
                 final newDocuments = await apiService
-                    .getAllDocuments(await tokenService.getAccessToken());
+                    .getAllDocuments(await tokenService.getAccessToken(), 12, 1);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(

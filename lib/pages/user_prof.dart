@@ -84,9 +84,10 @@ class _UserProfileState extends State<UserProfile> {
                 size: 24.0,
               ),
               title: Text(
-                '${widget.userProf?.username}',
+                '${widget.userProf?.firstName} ${widget.userProf?.lastName}',
                 style: TextStyle(color: Colors.black, fontSize: 24.0),
               ),
+              subtitle: Text('Login : ${widget.userProf?.login}', style: TextStyle(fontSize: 16.0, color: Colors.black),),
             ),
           ),
           SizedBox(
@@ -195,7 +196,7 @@ class _UserProfileState extends State<UserProfile> {
                                 if (formKey.currentState!.validate()) {
                                   UserProf newUserInfo = UserProf(
                                       password: newPasswordController.text,
-                                      username: newUsernameController.text);
+                                      );
                                   editUserProfile(
                                       await tokenService.getAccessToken(),
                                       newUserInfo.password,
