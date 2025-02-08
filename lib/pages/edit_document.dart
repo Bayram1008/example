@@ -31,6 +31,7 @@ class _EditDocumentState extends State<EditDocument> {
   TextEditingController documentName = TextEditingController();
   TextEditingController documentType = TextEditingController();
   TextEditingController employeeID = TextEditingController();
+  TextEditingController documentExpiredDate = TextEditingController();
 
   void getEmployeesAgain() async {
     final employees =
@@ -40,9 +41,34 @@ class _EditDocumentState extends State<EditDocument> {
     });
   }
 
+  Future<void> selectDate(
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
+    );
+    if (pickedDate != null) {
+      controller.text = "${pickedDate.toLocal()}".split(' ')[0];
+    }
+  }
+
   @override
   void initState() {
     getEmployeesAgain();
+  }
+
+  String fullName = '';
+  String getEmployeeName() {
+    allEmployees?.forEach((e) {
+      if (e.id == widget.editDocument.employee) {
+        fullName = '${e.firstName} ${e.lastName}';
+      }
+    });
+    return fullName;
   }
 
   File? avatarFile;
@@ -87,7 +113,8 @@ class _EditDocumentState extends State<EditDocument> {
               decoration: InputDecoration(border: OutlineInputBorder()),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return translation.enterDocumentName[widget.selectedLanguageIndex];
+                  return translation
+                      .enterDocumentName[widget.selectedLanguageIndex];
                 }
                 return null;
               },
@@ -100,22 +127,22 @@ class _EditDocumentState extends State<EditDocument> {
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
               ),
-                items: documentTypes.map((doc) {
-                  return DropdownMenuItem(
-                    value: doc,
-                    child: Text(doc),
-                  );
-                }).toList(),
-                onChanged: (doc){
-                  selectedDocumentType = doc;
-                },
-                value: selectedDocumentType,
-                ),
+              items: documentTypes.map((doc) {
+                return DropdownMenuItem(
+                  value: doc,
+                  child: Text(doc),
+                );
+              }).toList(),
+              onChanged: (doc) {
+                selectedDocumentType = doc;
+              },
+              value: selectedDocumentType,
+            ),
             SizedBox(
               height: 16.0,
             ),
             DropdownButtonFormField(
-              hint: Text(translation.employee[widget.selectedLanguageIndex]),
+              hint: Text(getEmployeeName()),
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
               ),
@@ -135,25 +162,50 @@ class _EditDocumentState extends State<EditDocument> {
             SizedBox(
               height: 16.0,
             ),
+            TextFormField(
+              controller: documentExpiredDate =
+                  TextEditingController(text: widget.editDocument.expiredDate),
+              style: TextStyle(fontSize: 18.0),
+              onTap: () => selectDate(context, documentExpiredDate),
+              readOnly: true,
+              decoration: InputDecoration(
+                labelText:
+                    translation.expiredDate[widget.selectedLanguageIndex],
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(
+              height: 16.0,
+            ),
             ElevatedButton(
               onPressed: () async {
                 print('we are above of edittedDocument');
                 Document edittedDocument = Document(
-                    expiredDate: DateFormat('yyyy-MM-dd').format(DateTime.now()),
-                    name: documentName.text,
-                    type: selectedDocumentType!,
-                    id: widget.editDocument.id, 
-                    employee: selectedEmployee?.id);
+                    expiredDate: DateFormat('DD-MM-yyyy')
+                        .format(DateTime.parse(documentExpiredDate.text)),
+                    name: documentName.text.isNotEmpty ? documentName.text : widget.editDocument.name,
+                    type: selectedDocumentType ?? widget.editDocument.type,
+                    id: widget.editDocument.id,
+                    employee: selectedEmployee != null ? selectedEmployee!.id : widget.editDocument.employee);
                 print('we are above of the query');
                 print('The selected employee is: $selectedEmployee');
                 print('employee_id : ${selectedEmployee?.id}');
                 print('Document id is: ${widget.editDocument.id}');
+                print('Employee id is: ${widget.editDocument.employee}');
+                print('Document id is: ${edittedDocument.employee}');
+                print('expiry_date is : ${edittedDocument.expiredDate}');
                 print('we are above of the apiService.updateDocument');
+                FormData newEditedDocument = FormData.fromMap({
+                  "employee_id" : edittedDocument.employee,
+                  "expiry_date" : edittedDocument.expiredDate,
+                  "name" : edittedDocument.name,
+                  "type" : edittedDocument.type,
+                  "file" : [await MultipartFile.fromFile(avatarFile!.path)],
+                });
                 await apiService.updateDocument(
-                    await tokenService.getAccessToken(),
-                    edittedDocument);
-                final newDocuments = await apiService
-                    .getAllDocuments(await tokenService.getAccessToken(), 12, 1);
+                    await tokenService.getAccessToken(), newEditedDocument, edittedDocument.id);
+                final newDocuments = await apiService.getAllDocuments(
+                    await tokenService.getAccessToken(), 12, 1);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(

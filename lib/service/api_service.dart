@@ -200,19 +200,23 @@ class ApiService {
     if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
       try {
         dio.options.headers['Authorization'] = 'Bearer $accessToken';
+        print('We are in searchEmployeesInPostData method under the dio.options.headers');
         final response = await dio.post(
           'employee/search',
           data: query,
         );
+        print('we just post the query');
         if (response.statusCode == 200) {
           final fromJson = EmployeeList.fromJson(response.data);
           final result =
               (fromJson.data!).map((e) => Employee.fromJson(e)).toList();
+          print('The result is : $result');
           return result;
         } else {
           throw Exception('Failed to load users');
         }
       } catch (e) {
+        print('The error: $e');
         throw Exception('Error: $e');
       }
     } else if (accessToken != null) {
@@ -343,14 +347,14 @@ class ApiService {
   }
 
   Future<void> postDocument(
-      String? accessToken, FormData query) async {
+      String? accessToken, FormData query, int id) async {
     if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
       try {
         dio.options.headers = {'Content-Type': 'multipart/form-data'};
         dio.options.headers['Authorization'] = 'Bearer $accessToken';
         print('We are in the postData under the dio.options.headers');
         final response = await dio.post(
-          'doc',
+          'doc/$id',
           data: query,
         );
         print('We just post the user');
@@ -373,7 +377,7 @@ class ApiService {
       if (responce.statusCode == 200) {
         String newAccessToken = responce.data['accessToken'];
         tokenService.updateAccessToken(newAccessToken);
-        postDocument(newAccessToken, query);
+        postDocument(newAccessToken, query, id);
       }
     }
   }
@@ -418,19 +422,15 @@ class ApiService {
   }
 
   Future<void> updateDocument(
-      String? accessToken, Document newDocument) async {
+      String? accessToken, FormData newDocument, int? id) async {
     if (accessToken != null && !tokenService.isTokenExpired(accessToken)) {
       try {
+        dio.options.headers = {'Content-Type': 'multipart/form-data'};
         dio.options.headers['Authorization'] = 'Bearer $accessToken';
         print('We are in the postData under the dio.options.headers');
         final response = await dio.put(
-          'doc/${newDocument.id}',
-          data: {
-            "employee_id" : newDocument.employee,
-            "expiry_date" : newDocument.expiredDate,
-            "name" : newDocument.name,
-            "type" : newDocument.type
-          },
+          'doc/$id',
+          data: newDocument,
         );
         print('We just post the user');
 
@@ -452,7 +452,7 @@ class ApiService {
       if (responce.statusCode == 200) {
         String newAccessToken = responce.data['accessToken'];
         tokenService.updateAccessToken(newAccessToken);
-        updateDocument(newAccessToken, newDocument);
+        updateDocument(newAccessToken, newDocument, id);
       }
     }
   }

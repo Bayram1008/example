@@ -33,6 +33,7 @@ class _UserListState extends State<UserList> {
   TextEditingController newPositionController = TextEditingController();
   TextEditingController newPhoneController = TextEditingController();
   TextEditingController newBirthdayMonthController = TextEditingController();
+  TextEditingController newEmailAddressController = TextEditingController();
   TextEditingController newFirstNameControllerForSearchInGetData =
       TextEditingController();
   TextEditingController newLastNameControllerForSearchInPostData =
@@ -97,6 +98,7 @@ class _UserListState extends State<UserList> {
     newPositionController.clear();
     newPhoneController.clear();
     newBirthdayMonthController.clear();
+    newEmailAddressController.clear();
   }
 
   void _searchEmployeesInPostData(Map<String, String?> query) async {
@@ -130,37 +132,6 @@ class _UserListState extends State<UserList> {
     }
   }
 
-  // void _searchEmployeesInGetData(String? query) async {
-  //   if (query!.isEmpty) {
-  //     setState(() {
-  //       filteredEmployeeList = [];
-  //     });
-  //     return;
-  //   }
-
-  //   setState(() {
-  //     _isLoading = true;
-  //   });
-
-  //   try {
-  //     final users = await apiService.searchEmployeesInGetData(
-  //       query,
-  //       await tokenService.getAccessToken(),
-  //     );
-  //     setState(() {
-  //       filteredEmployeeList = users;
-  //     });
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(SnackBar(content: Text(e.toString())));
-  //   } finally {
-  //     setState(() {
-  //       _isLoading = false;
-  //     });
-  //   }
-  // }
-
   @override
   void dispose() {
     changeIndex.dispose();
@@ -176,7 +147,7 @@ class _UserListState extends State<UserList> {
       create: (context) => changeIndex,
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.black,
         appBar: AppBar(
           centerTitle: true,
           backgroundColor: Colors.blueGrey[400],
@@ -219,8 +190,8 @@ class _UserListState extends State<UserList> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: Text(
-                          translation.searchBar[changeIndex.selectedLanguageIndex]),
+                      title: Text(translation
+                          .searchBar[changeIndex.selectedLanguageIndex]),
                       content: Form(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -229,8 +200,8 @@ class _UserListState extends State<UserList> {
                               controller:
                                   newFirstNameControllerForSearchInGetData,
                               decoration: InputDecoration(
-                                labelText: translation
-                                    .firstName[changeIndex.selectedLanguageIndex],
+                                labelText: translation.firstName[
+                                    changeIndex.selectedLanguageIndex],
                                 border: const OutlineInputBorder(),
                                 suffixIcon: _isLoading
                                     ? CircularProgressIndicator()
@@ -248,8 +219,8 @@ class _UserListState extends State<UserList> {
                               controller:
                                   newLastNameControllerForSearchInPostData,
                               decoration: InputDecoration(
-                                labelText: translation
-                                    .lastName[changeIndex.selectedLanguageIndex],
+                                labelText: translation.lastName[
+                                    changeIndex.selectedLanguageIndex],
                                 border: const OutlineInputBorder(),
                                 suffixIcon: _isLoading
                                     ? CircularProgressIndicator()
@@ -271,65 +242,38 @@ class _UserListState extends State<UserList> {
                           children: [
                             ElevatedButton(
                               onPressed: () {
-                                newFirstNameControllerForSearchInGetData.clear();
-                                newLastNameControllerForSearchInPostData.clear();
+                                newFirstNameControllerForSearchInGetData
+                                    .clear();
+                                newLastNameControllerForSearchInPostData
+                                    .clear();
                                 setState(() {
                                   filteredEmployeeList = widget.employeeList!;
                                 });
                                 Navigator.pop(context);
                               },
                               child: Text(
-                                translation
-                                    .cancelButton[changeIndex.selectedLanguageIndex],
+                                translation.cancelButton[
+                                    changeIndex.selectedLanguageIndex],
                                 style: TextStyle(color: Colors.red),
                               ),
                             ),
                             ElevatedButton(
                               onPressed: () {
-                                newFirstNameControllerForSearchInGetData.clear();
-                                newLastNameControllerForSearchInPostData.clear();
+                                newFirstNameControllerForSearchInGetData
+                                    .clear();
+                                newLastNameControllerForSearchInPostData
+                                    .clear();
                                 setState(() {
                                   filteredEmployeeList = widget.employeeList!;
                                 });
                                 Navigator.pop(context);
                               },
                               child: Text(
-                                translation
-                                    .clearButton[changeIndex.selectedLanguageIndex],
+                                translation.clearButton[
+                                    changeIndex.selectedLanguageIndex],
                                 style: TextStyle(color: Colors.blue),
                               ),
                             ),
-                            // ElevatedButton(
-                            //   onPressed: () {
-                            //     if (newFirstNameControllerForSearchInGetData
-                            //         .text.isNotEmpty) {
-                            //       _searchEmployeesInGetData(
-                            //         newFirstNameControllerForSearchInGetData.text,
-                            //       );
-                            //     } else if (newLastNameControllerForSearchInPostData
-                            //         .text.isNotEmpty) {
-                            //       _searchEmployeesInGetData(
-                            //         newLastNameControllerForSearchInPostData.text,
-                            //       );
-                            //     } else {
-                            //       ScaffoldMessenger.of(context).showSnackBar(
-                            //         SnackBar(
-                            //           content: Text(
-                            //               translation.thereIsNoSuchEmployee[
-                            //                   selectedLanguageIndex]),
-                            //         ),
-                            //       );
-                            //       setState(() {
-                            //         filteredEmployeeList = widget.employeeList!;
-                            //       });
-                            //     }
-                            //     Navigator.pop(context);
-                            //   },
-                            //   child: Text(
-                            //     translation.searchButton[selectedLanguageIndex],
-                            //     style: TextStyle(color: Colors.green),
-                            //   ),
-                            // ),
                           ],
                         ),
                       ],
@@ -340,7 +284,20 @@ class _UserListState extends State<UserList> {
             ),
           ],
         ),
-        drawer: NewDrawer(),
+        drawer: IconButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NewDrawer(),
+              ),
+            );
+          },
+          icon: Icon(
+            Icons.menu,
+            color: Colors.white,
+          ),
+        ),
         body: filteredEmployeeList.isEmpty
             ? Center(
                 child: Text(
@@ -374,7 +331,7 @@ class _UserListState extends State<UserList> {
                       padding: EdgeInsets.all(10),
                       margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                       decoration: BoxDecoration(
-                        color: Colors.blueGrey[100],
+                        color: Colors.black,
                         borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
@@ -384,7 +341,8 @@ class _UserListState extends State<UserList> {
                           ),
                         ],
                       ),
-                      height: selectedAnimatedContainerIndex == index ? 175 : 125,
+                      height:
+                          selectedAnimatedContainerIndex == index ? 175 : 125,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
@@ -409,11 +367,13 @@ class _UserListState extends State<UserList> {
                             ),
                             title: Text(
                               '${filteredEmployeeList[index].firstName} ${filteredEmployeeList[index].lastName}',
-                              style: TextStyle(fontSize: 14.0),
+                              style: TextStyle(
+                                  fontSize: 14.0, color: Colors.white),
                             ),
                             subtitle: Text(
-                              filteredEmployeeList[index].position,
-                              style: TextStyle(fontSize: 14.0),
+                              '${filteredEmployeeList[index].position} / ${filteredEmployeeList[index].phoneNumber}',
+                              style: TextStyle(
+                                  fontSize: 14.0, color: Colors.white),
                             ),
                             trailing: SizedBox(
                               child: Row(
@@ -427,8 +387,8 @@ class _UserListState extends State<UserList> {
                                           builder: (context) => UpdateEmployee(
                                             editEmployee:
                                                 filteredEmployeeList[index],
-                                            selectedLanguageIndex:
-                                                changeIndex.selectedLanguageIndex,
+                                            selectedLanguageIndex: changeIndex
+                                                .selectedLanguageIndex,
                                           ),
                                         ),
                                       );
@@ -485,7 +445,8 @@ class _UserListState extends State<UserList> {
                           if (selectedAnimatedContainerIndex == index)
                             Expanded(
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
                                 children: [
                                   ElevatedButton(
                                     style: ButtonStyle(
@@ -506,8 +467,8 @@ class _UserListState extends State<UserList> {
                                           builder: (context) => EmployeeDoc(
                                             id: filteredEmployeeList[index].id,
                                             employeeDocuments: employeeDoc,
-                                            selectedLanguageIndex:
-                                                changeIndex.selectedLanguageIndex,
+                                            selectedLanguageIndex: changeIndex
+                                                .selectedLanguageIndex,
                                           ),
                                         ),
                                       );
@@ -532,8 +493,8 @@ class _UserListState extends State<UserList> {
                                           builder: (context) => EmployeeInfo(
                                             employeeInformation:
                                                 filteredEmployeeList[index],
-                                            selectedLanguageIndex:
-                                                changeIndex.selectedLanguageIndex,
+                                            selectedLanguageIndex: changeIndex
+                                                .selectedLanguageIndex,
                                           ),
                                         ),
                                       );
@@ -579,14 +540,14 @@ class _UserListState extends State<UserList> {
                         child: Center(
                           child: ListView(
                             children: [
-                              Text(translation
-                                  .searchBar[changeIndex.selectedLanguageIndex]),
+                              Text(translation.searchBar[
+                                  changeIndex.selectedLanguageIndex]),
                               const SizedBox(height: 8.0),
                               TextFormField(
                                 controller: newFirstNameController,
                                 decoration: InputDecoration(
-                                  labelText: translation
-                                      .firstName[changeIndex.selectedLanguageIndex],
+                                  labelText: translation.firstName[
+                                      changeIndex.selectedLanguageIndex],
                                   border: const OutlineInputBorder(),
                                   suffixIcon: _isLoading
                                       ? CircularProgressIndicator()
@@ -602,8 +563,8 @@ class _UserListState extends State<UserList> {
                               TextFormField(
                                 controller: newLastNameController,
                                 decoration: InputDecoration(
-                                  labelText: translation
-                                      .lastName[changeIndex.selectedLanguageIndex],
+                                  labelText: translation.lastName[
+                                      changeIndex.selectedLanguageIndex],
                                   border: const OutlineInputBorder(),
                                   suffixIcon: _isLoading
                                       ? CircularProgressIndicator()
@@ -617,10 +578,27 @@ class _UserListState extends State<UserList> {
                               ),
                               const SizedBox(height: 8.0),
                               TextFormField(
+                                controller: newEmailAddressController,
+                                decoration: InputDecoration(
+                                  labelText: translation.emailAddress[
+                                      changeIndex.selectedLanguageIndex],
+                                  border: const OutlineInputBorder(),
+                                  suffixIcon: _isLoading
+                                      ? CircularProgressIndicator()
+                                      : IconButton(
+                                          icon: Icon(Icons.clear),
+                                          onPressed: () {
+                                            newEmailAddressController.clear();
+                                          },
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(height: 8.0),
+                              TextFormField(
                                 controller: newPositionController,
                                 decoration: InputDecoration(
-                                  labelText: translation
-                                      .position[changeIndex.selectedLanguageIndex],
+                                  labelText: translation.position[
+                                      changeIndex.selectedLanguageIndex],
                                   border: const OutlineInputBorder(),
                                   suffixIcon: _isLoading
                                       ? CircularProgressIndicator()
@@ -636,8 +614,8 @@ class _UserListState extends State<UserList> {
                               TextFormField(
                                 controller: newPhoneController,
                                 decoration: InputDecoration(
-                                  labelText: translation
-                                      .phoneNumber[changeIndex.selectedLanguageIndex],
+                                  labelText: translation.phoneNumber[
+                                      changeIndex.selectedLanguageIndex],
                                   border: const OutlineInputBorder(),
                                   suffixIcon: _isLoading
                                       ? CircularProgressIndicator()
@@ -670,7 +648,8 @@ class _UserListState extends State<UserList> {
                               ),
                               const SizedBox(height: 8.0),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
                                   ElevatedButton(
                                     onPressed: () {
@@ -711,28 +690,32 @@ class _UserListState extends State<UserList> {
                                   ElevatedButton(
                                     onPressed: () {
                                       final Map<String, String?> searchBar = {
-                                        'first_name':
-                                            newFirstNameController.text.isNotEmpty
-                                                ? newFirstNameController.text
-                                                : null,
-                                        'last_name':
-                                            newLastNameController.text.isNotEmpty
-                                                ? newLastNameController.text
-                                                : null,
-                                        'position':
-                                            newPositionController.text.isNotEmpty
-                                                ? newPositionController.text
-                                                : null,
-                                        'phone_number':
-                                            newPhoneController.text.isNotEmpty
-                                                ? newPhoneController.text
-                                                : null,
-                                        'birth_month': newBirthdayMonthController
-                                                .text.isNotEmpty
-                                            ? newBirthdayMonthController.text
-                                            : null,
+                                        newFirstNameController.text.isNotEmpty
+                                            ? "first_name"
+                                            : newFirstNameController.text: '',
+                                        // newLastNameController
+                                        //         .text.isNotEmpty
+                                        //     ? "last_name": newLastNameController.text
+                                        //     : null,
+                                        // newPositionController
+                                        //         .text.isNotEmpty
+                                        //     ? "position": newPositionController.text
+                                        //     : null,
+                                        //     newPhoneController.text.isNotEmpty
+                                        //         ? "phone_number": newPhoneController.text
+                                        //         : null,
+                                        //     newBirthdayMonthController
+                                        //             .text.isNotEmpty
+                                        //         ? "birth_month": newBirthdayMonthController
+                                        //             .text
+                                        //         : null,
+                                        // newEmailAddressController
+                                        //         .text.isNotEmpty
+                                        //     ? "email": newEmailAddressController.text
+                                        //     : null,
                                       };
                                       _searchEmployeesInPostData(searchBar);
+                                      clear();
                                       Navigator.pop(context);
                                     },
                                     child: Text(

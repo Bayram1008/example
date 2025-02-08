@@ -132,6 +132,7 @@ class _NewDocumentState extends State<NewDocument> {
                   return translation
                       .enterDocumentName[widget.selectedLanguageIndex];
                 }
+                return null;
               },
             ),
             const SizedBox(height: 16.0),
@@ -202,7 +203,7 @@ class _NewDocumentState extends State<NewDocument> {
                         ],
                       });
                       await apiService.postDocument(
-                          await tokenService.getAccessToken(), query);
+                          await tokenService.getAccessToken(), query, widget.id!);
 
                       final employeeDoc = await apiService.getEmployeeDocuments(
                           widget.id, await tokenService.getAccessToken());

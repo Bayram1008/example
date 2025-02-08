@@ -34,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.black,
       body: Form(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -42,10 +42,12 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const CircleAvatar(
+                backgroundColor: Colors.black,
                 radius: 50.0,
                 child: Icon(
                   Icons.person,
                   size: 50.0,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(
@@ -53,25 +55,60 @@ class _LoginPageState extends State<LoginPage> {
               ),
               TextFormField(
                 focusNode: nameFocus,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.w300,
+                ),
                 onFieldSubmitted: (_) {
                   changeField(context, nameFocus, passwordFocus);
                 },
                 controller: usernameController,
-                decoration: const InputDecoration(
+                cursorColor: Colors.white,
+                decoration: InputDecoration(
+                  labelStyle: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.0,
+                  ),
                   labelText: 'Username',
-                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
               ),
               const SizedBox(
                 height: 15.0,
               ),
               TextFormField(
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.w300,
+                ),
                 obscureText: hidePassword,
                 focusNode: passwordFocus,
                 controller: passwordController,
+                cursorColor: Colors.white,
                 decoration: InputDecoration(
+                  labelStyle: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18.0,
+                  ),
                   labelText: 'Password',
-                  border: const OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  suffixIconColor: Colors.white,
                   suffixIcon: IconButton(
                     onPressed: () {
                       setState(() {
@@ -86,9 +123,10 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(
                 height: 30.0,
               ),
-              TextButton(
+              ElevatedButton(
                 onPressed: () async {
-                  final token = await service.getToken(usernameController.text, passwordController.text);
+                  final token = await service.getToken(
+                      usernameController.text, passwordController.text);
                   final employeeList = await service.getData(token, 1, 10);
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
@@ -98,9 +136,13 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   );
                 },
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll<Color>(Colors.green),
+                ),
                 child: const Text(
-                  'Login',
+                  'Sign in',
                   style: TextStyle(
+                    color: Colors.white,
                     fontSize: 24.0,
                     fontWeight: FontWeight.bold,
                   ),

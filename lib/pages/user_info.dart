@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:new_project/model/user_model.dart';
 import 'package:new_project/pages/translation.dart';
 

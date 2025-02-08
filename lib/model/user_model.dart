@@ -13,7 +13,6 @@ class Employee {
   String? createdAt;
   String? updatedAt;
   int? userId;
-
   List<dynamic>? documents;
 
   Employee({
@@ -132,7 +131,7 @@ class Document {
       employee: json['employee_id'],
       name: json['name'],
       type: json['type'],
-      filePath: json['file'],
+      filePath: json['file_path'],
       expiredDate: json['expiry_date'],
     );
   }
@@ -142,7 +141,7 @@ class Document {
       'name': name,
       'type': type,
       'expiry_date': expiredDate,
-      'file':filePath,
+      'file_path':filePath,
       'employee_id': employee,
     };
   }
